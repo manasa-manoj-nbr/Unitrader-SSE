@@ -128,6 +128,27 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
             </div>
           </div>
           <div className={styles.details}>
+          <div className={styles.nav} style={{display: "flex", justifyContent:"space-evenly"}}>
+              <button
+                className={cn(
+                  // styles.active,
+                  styles.link
+                )}
+                onClick={() => handleAddToCart()}
+              >
+                Chat with Buyer
+              </button>
+
+              <button
+                className={cn(
+                  // styles.active,
+                  styles.link
+                )}
+                onClick={() => handleAddToCart()}
+              >
+                View Discussion Forum
+              </button>
+            </div>
             <h1 className={cn('h3', styles.title)}>{itemInfo[0]?.title}</h1>
             <div className={styles.cost}>
               <PriceDisplay price={itemInfo[0]?.metadata?.price} />
@@ -137,23 +158,11 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
                   : 'Not Available'}
               </div>
             </div>
+            
             <div className={styles.info}>
               {itemInfo[0]?.metadata?.description}
             </div>
-            <div className={styles.nav}>
-              {itemInfo[0]?.metadata?.categories?.map((x, index) => (
-                <button
-                  className={cn(
-                    { [styles.active]: index === activeIndex },
-                    styles.link
-                  )}
-                  onClick={() => setActiveIndex(index)}
-                  key={index}
-                >
-                  {x?.title}
-                </button>
-              ))}
-            </div>
+            
             <div className={styles.actions}>
               <div className={styles.dropdown}>
                 <Dropdown
@@ -196,7 +205,9 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
                 </button>
               </div>
             </div>
+            
             <br />
+            
             <span
               style={{ color: 'red', cursor: 'pointer', textAlign: 'right' }}
               onClick={() => setShowReportModal(true)}
@@ -249,3 +260,35 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
 }
 
 export default Item
+
+export async function getServerSideProps({ params }) {
+  const itemInfo = await getDataBySlug(params.slug)
+
+  const navigationItems = (await getAllDataByType('navigation')) || []
+  const categoryTypes = (await getAllDataByType('categories')) || []
+  const categoriesData = await Promise.all(
+    categoryTypes?.map(category => {
+      return getDataByCategory(category?.id)
+    })
+  )
+
+  const categoriesGroups = categoryTypes?.map(({ id }, index) => {
+    return { [id]: categoriesData[index] }
+  })
+
+  const categoriesType = categoryTypes?.reduce((arr, { title, id }) => {
+    return { ...arr, [id]: title }
+  }, {})
+
+  const categoriesGroup = { groups: categoriesGroups, type: categoriesType }
+
+  if (!itemInfo) {
+    return {
+      notFound: true,
+    }
+  }
+
+  return {
+    props: { itemInfo, navigationItems, categoriesGroup },
+  }
+}
