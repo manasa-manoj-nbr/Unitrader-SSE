@@ -1,17 +1,17 @@
 import React, { useState } from 'react'
-import cn from 'classnames'
-import AppLink from '../AppLink'
-import Group from './Group'
-import Theme from '../Theme'
+// import cn from 'classnames'
+// import AppLink from '../AppLink'
+// import Group from './Group'
+// import Theme from '../Theme'
 import Image from '../Image'
-import SocialMedia from '../SocialMedia'
+// import SocialMedia from '../SocialMedia'
 
 import styles from './Footer.module.sass'
 
-const Footers = ({ navigation }) => {
+const Footers = () => {
   return (
     <footer className={styles.footer}>
-      <div className={cn('container', styles.container)}>
+      {/* <div className={cn('container', styles.container)}>
         <div className={styles.row}>
           <div className={styles.col} aria-hidden="true">
             <AppLink className={styles.logo} href="/">
@@ -56,12 +56,12 @@ const Footers = ({ navigation }) => {
             </AppLink>
           </div>
         </div>
-      </div>
+      </div> */}
       <div>
         <div className={styles.copyright} aria-hidden="true">
           <span className={styles.cosmicGroup}>
-            <p className={styles.powered}>Powered by </p>
-            <a href="https://www.cosmicjs.com">
+            <p className={styles.powered}>©2024 UniTrader </p>
+            <a href="#">
               <Image
                 className={styles.cosmic}
                 size={{ width: '110px', height: '90px' }}

@@ -101,7 +101,7 @@ const Selection = ({ info, type }) => {
                             />
                             <div
                               className={styles.price}
-                            >{`$${x?.metadata?.price}`}</div>
+                            >{`₹${x?.metadata?.price}`}</div>
                             <div
                               className={styles.content}
                             >{`${x?.metadata?.count} item`}</div>

@@ -1,4 +1,4 @@
-const OPTIONS = ['Any color', 'Red', 'Blue', 'Black', 'Purple']
+const OPTIONS = ['Any mode', 'LBIN', 'AUCTION']
 
 const STEP = 1
 const MIN = 1

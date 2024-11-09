@@ -2,22 +2,25 @@
 
 .header
     position: fixed
-    top: 35px
     left: 0
     width: 100%
     z-index: 20
     padding: 10px 0
-    background: $white
-    border-bottom: 1px solid $neutrals6
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2)
+    background: rgba(255, 255, 255, 0.3)  // Transparent white for glassmorphism
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3)
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1)
+    backdrop-filter: blur(10px)  // Applies the blur effect for glassmorphism
+    -webkit-backdrop-filter: blur(10px)
+    border-radius: 8px
     +m
         padding: 10px 0
         border: none
-        top: 50px
+        // top: 50px
     +dark
-        background: $neutrals1
-        border-color: $neutrals3
-        box-shadow: 0 0 10px 0 rgba(107, 107, 107, 0.2)
+        background: rgba(34, 34, 34, 0.4)
+        border-color: rgba(255, 255, 255, 0.1)
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)
+
 
 .container
     display: flex

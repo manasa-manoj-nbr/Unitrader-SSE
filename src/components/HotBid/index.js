@@ -55,7 +55,7 @@ const Hot = ({ classSection, info }) => {
     <div className={cn(classSection, styles.section)}>
       <div className={cn('container', styles.container)}>
         <div className={styles.wrapper}>
-          <h2 className={cn('h3', styles.title)}>Hot bid</h2>
+          <h2 className={cn('h3', styles.title)}>Latest Items</h2>
           <div className={styles.inner}>
             <Slider className="bid-slider" {...settings}>
               {info &&

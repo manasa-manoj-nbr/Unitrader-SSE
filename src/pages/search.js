@@ -142,9 +142,9 @@ const Search = ({ categoriesGroup, navigationItems, categoryData }) => {
   return (
     <Layout navigationPaths={navigationItems[0]?.metadata}>
       <PageMeta
-        title={'Discover | uNFT Marketplace'}
+        title={'Discover | UniTrader'}
         description={
-          'uNFT Marketplace built with Cosmic CMS, Next.js, and the Stripe API'
+          'UniTrader is your friendly college-hood marketplace.'
         }
       />
       <div className={cn('section-pt80', styles.section)}>
@@ -177,7 +177,7 @@ const Search = ({ categoriesGroup, navigationItems, categoryData }) => {
               </div>
               <div className={styles.sorting}>
                 <div className={styles.dropdown}>
-                  <div className={styles.label}>Select color</div>
+                  <div className={styles.label}>Select Trade Mode</div>
                   <Dropdown
                     className={styles.dropdown}
                     value={option}

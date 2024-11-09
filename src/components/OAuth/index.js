@@ -3,7 +3,7 @@ import cn from 'classnames'
 import { useRouter } from 'next/router'
 import AppLink from '../AppLink'
 import Loader from '../Loader'
-import registerFields from '../../utils/constants/registerFields'
+// import registerFields from '../../utils/constants/registerFields'
 import { useStateContext } from '../../utils/context/StateContext'
 import { setToken } from '../../utils/token'
 
@@ -13,7 +13,7 @@ const OAuth = ({ className, handleClose, handleOAuth, disable }) => {
   const { setCosmicUser } = useStateContext()
   const { push } = useRouter()
 
-  const [{ email, password }, setFields] = useState(() => registerFields)
+  // const [{ email, password }, setFields] = useState(() => registerFields)
   const [fillFiledMessage, setFillFiledMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -38,18 +38,27 @@ const OAuth = ({ className, handleClose, handleOAuth, disable }) => {
   const submitForm = useCallback(
     async e => {
       e.preventDefault()
-      fillFiledMessage?.length && setFillFiledMessage('')
+      // fillFiledMessage?.length && setFillFiledMessage('')
       setLoading(true)
-      if ((email, password)) {
+      // if ((email, password)) {
         const auth = await fetch('/api/auth', {
           method: 'POST',
           headers: {
             Accept: 'application/json',
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify({ email: 'email@mail.com', password: 'passaword' }),
         })
-        const cosmicUser = await auth.json()
+        // const cosmicUser = await auth.json()
+        // create a sample json object to test the code
+        const cosmicUser = {
+          user: {
+            id: '123',
+            first_name: 'John',
+            // avatar_url: 'https://placehold.co/400',
+          },
+        }
+
         if (cosmicUser?.hasOwnProperty('user')) {
           setCosmicUser(cosmicUser['user'])
           setToken({
@@ -60,20 +69,20 @@ const OAuth = ({ className, handleClose, handleOAuth, disable }) => {
 
           setFillFiledMessage('Congrats!')
           handleOAuth(cosmicUser['user'])
-          setFields(registerFields)
+          // setFields(registerFields)
           handleClose()
         } else {
-          setFillFiledMessage('Please first register in Cosmic')
+          setFillFiledMessage('Please first register first')
         }
-      } else {
-        setFillFiledMessage('Please fill all fields')
-      }
+      // } else {
+      //   setFillFiledMessage('Please fill all fields')
+      // }
       setLoading(false)
     },
     [
-      fillFiledMessage?.length,
-      email,
-      password,
+      // fillFiledMessage?.length,
+      // email,
+      // password,
       setCosmicUser,
       handleOAuth,
       handleClose,
@@ -84,19 +93,19 @@ const OAuth = ({ className, handleClose, handleOAuth, disable }) => {
     <div className={cn(className, styles.transfer)}>
       <div className={cn('h4', styles.title)}>
         Authentication with{' '}
-        <AppLink target="_blank" href={`https://www.cosmicjs.com`}>
-          Cosmic
+        <AppLink target="_blank" href={`https://www.example.com`}>
+          your college email
         </AppLink>
       </div>
       <div className={styles.text}>
-        To create an item you need to register an account at{' '}
-        <AppLink target="_blank" href={`https://www.cosmicjs.com`}>
-          Cosmic
+        To sell an item you need to register an account at{' '}
+        <AppLink target="_blank" href={`https://www.example.com`}>
+          UniTrader
         </AppLink>
       </div>
       <div className={styles.error}>{fillFiledMessage}</div>
       <form className={styles.form} action="submit" onSubmit={submitForm}>
-        <div className={styles.field}>
+        {/* <div className={styles.field}>
           <input
             ref={inputElement}
             className={styles.input}
@@ -118,7 +127,7 @@ const OAuth = ({ className, handleClose, handleOAuth, disable }) => {
             value={password}
             required
           />
-        </div>
+        </div> */}
         <div className={styles.btns}>
           <button type="submit" className={cn('button', styles.button)}>
             {loading ? <Loader /> : 'Continue'}

@@ -126,6 +126,7 @@ const Upload = ({ navigationItems, categoriesType }) => {
             color,
             categories: [chooseCategory],
             image: uploadMedia['name'],
+            auction: false, 
           }),
         })
 
@@ -163,9 +164,9 @@ const Upload = ({ navigationItems, categoriesType }) => {
   return (
     <Layout navigationPaths={navigationItems[0]?.metadata || navigation}>
       <PageMeta
-        title={'Create Item | uNFT Marketplace'}
+        title={'Create Item | UniTrader'}
         description={
-          'uNFT Marketplace built with Cosmic CMS, Next.js, and the Stripe API'
+          'UniTrader is your friendly college-hood marketplace.'
         }
       />
       <div className={cn('section', styles.section)}>
@@ -173,7 +174,7 @@ const Upload = ({ navigationItems, categoriesType }) => {
           <div className={styles.wrapper}>
             <div className={styles.head}>
               <div className={cn('h2', styles.title)}>
-                Create single collectible
+                Create an item
               </div>
             </div>
             <form className={styles.form} action="" onSubmit={submitForm}>

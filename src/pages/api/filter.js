@@ -28,7 +28,7 @@ export default async function filterHandler(req, res) {
   if (
     typeof color !== 'undefined' &&
     color !== 'undefined' &&
-    color?.toLocaleLowerCase() !== 'any color'
+    color?.toLocaleLowerCase() !== 'any mode'
   ) {
     queryParam = { ...queryParam, 'metadata.color': color }
   }

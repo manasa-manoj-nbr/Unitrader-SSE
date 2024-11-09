@@ -45,7 +45,7 @@ const Card = ({ className, item }) => {
             className={styles.bid}
             dangerouslySetInnerHTML={{ __html: item?.count }}
           />
-          <span className={styles.price}>{`$ ${item?.metadata?.price}`}</span>
+          <span className={styles.price}>{`₹ ${item?.metadata?.price}`}</span>
         </div>
       </AppLink>
     </div>

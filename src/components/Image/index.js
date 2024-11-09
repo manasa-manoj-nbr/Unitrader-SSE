@@ -1,6 +1,6 @@
 import React from 'react'
 import Image from 'next/image'
-import useDarkMode from 'use-dark-mode'
+import useDarkMode from '@fisch0920/use-dark-mode'
 
 const ImageApp = ({
   className,
