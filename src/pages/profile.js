@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import styles from '../screens/ProfilePage/profile.module.sass'
-
+import styles from '@/styles/Profile.module.css'
 const DEFAULT_PROFILE_DATA = {
   name: 'Sanjay A',
   title: '2023BCS0020',
