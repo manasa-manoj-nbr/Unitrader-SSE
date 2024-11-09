@@ -10,10 +10,10 @@ export default async function handler(req, res) {
         mode: 'payment',
         payment_method_types: ['card'],
         billing_address_collection: 'auto',
-        shipping_options: [
-          { shipping_rate: 'shr_1L4pafH6oGDppJjV9MrYC7z0' },
-          { shipping_rate: 'shr_1L4pn4H6oGDppJjVBL7vPTk1' },
-        ],
+        // shipping_options: [
+        //   // { shipping_rate: 'shr_1L4pafH6oGDppJjV9MrYC7z0' },
+        //   // { shipping_rate: 'shr_1L4pn4H6oGDppJjVBL7vPTk1' },
+        // ],
         line_items: req.body.map(item => {
           const img = item.metadata.image.imgix_url
 

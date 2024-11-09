@@ -9,6 +9,7 @@ import Dropdown from '../../components/Dropdown'
 import Modal from '../../components/Modal'
 import OAuth from '../../components/OAuth'
 import Image from '../../components/Image'
+import TextInput from '../../components/TextInput'
 import {
   getDataBySlug,
   getAllDataByType,
@@ -23,6 +24,8 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
 
   const [activeIndex, setActiveIndex] = useState(0)
   const [visibleAuthModal, setVisibleAuthModal] = useState(false)
+  const [price, setPrice] = useState(0)
+  const [showReportModal, setShowReportModal] = useState(false) // State for the Report Modal
 
   const counts = itemInfo?.[0]?.metadata?.count
     ? Array(itemInfo[0]?.metadata?.count)
@@ -45,7 +48,10 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
   )
 
   const handleCheckout = async () => {
-    const addCart = await onAdd(itemInfo[0], option)
+    let oldCart = await onAdd(itemInfo[0], option)
+    oldCart[0].metadata.price = price
+    const addCart = oldCart
+    console.log(addCart)
 
     if (addCart?.length) {
       const stripe = await getStripe()
@@ -65,8 +71,38 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
         position: 'bottom-right',
       })
 
+      console.log(data)
+
       stripe.redirectToCheckout({ sessionId: data.id })
     }
+  }
+
+  const PriceDisplay = () => {
+    const isAuction = itemInfo[0]?.metadata?.color.toLowerCase() === 'auction'
+
+    return (
+      <span className={cn(styles.price, 'flex items-center gap-2')}>
+        <span>₹ {itemInfo[0]?.metadata?.price}</span>
+        {isAuction && (
+          <>
+            <style>
+              {`
+            @keyframes fadeInOut {
+              0%, 100% { opacity: 1; }
+              50% { opacity: 0; }
+            }
+            .fade {
+              animation: fadeInOut 1s infinite;
+            }
+          `}
+            </style>
+            <span className="fade" style={{ color: 'red', marginLeft: '4px' }}>
+              LIVE
+            </span>
+          </>
+        )}
+      </span>
+    )
   }
 
   return (
@@ -94,9 +130,7 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
           <div className={styles.details}>
             <h1 className={cn('h3', styles.title)}>{itemInfo[0]?.title}</h1>
             <div className={styles.cost}>
-              <div className={cn('status-stroke-green', styles.price)}>
-                {`₹${itemInfo[0]?.metadata?.price}`}
-              </div>
+              <PriceDisplay price={itemInfo[0]?.metadata?.price} />
               <div className={styles.counter}>
                 {itemInfo[0]?.metadata?.count > 0
                   ? `${itemInfo[0]?.metadata?.count} in stock`
@@ -130,21 +164,52 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
                 />
               </div>
               <div className={styles.btns}>
+                {itemInfo[0]?.metadata?.color.toLowerCase() === 'auction' && (
+                  <div className={styles.col}>
+                    <TextInput
+                      className={styles.field}
+                      label="Price"
+                      name="price"
+                      type="text"
+                      placeholder="Place Higher Bid"
+                      onChange={e => {
+                        setPrice(e.target.value)
+                        console.log(option)
+                      }}
+                      // value={price}
+                      required
+                    />
+                  </div>
+                )}
+
                 <button
                   className={cn('button', styles.button)}
-                  onClick={handleAddToCart}
+                  onClick={
+                    itemInfo[0]?.metadata?.price < price
+                      ? handleAddToCart
+                      : null
+                  }
                 >
-                  Buy Now
+                  {itemInfo[0]?.metadata?.color.toLowerCase() === 'auction'
+                    ? 'Place Bid'
+                    : 'Buy Now'}
                 </button>
               </div>
             </div>
+            <br />
+            <span
+              style={{ color: 'red', cursor: 'pointer', textAlign: 'right' }}
+              onClick={() => setShowReportModal(true)}
+            >
+              Report Item
+            </span>
           </div>
         </div>
         <HotBid classSection="section" info={categoriesGroup['groups'][0]} />
-        <Discover
+        {/* <Discover
           info={categoriesGroup['groups']}
           type={categoriesGroup['type']}
-        />
+        /> */}
       </div>
       <Modal
         visible={visibleAuthModal}
@@ -156,40 +221,31 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
           handleClose={() => setVisibleAuthModal(false)}
         />
       </Modal>
+
+      {/* Report Item Modal */}
+      <Modal
+        visible={showReportModal}
+        onClose={() => setShowReportModal(false)}
+      >
+        <div className={styles.reportModalContent}>
+          <h3>Confirm Report</h3>
+          <p>Are you sure you want to report this item?</p>
+          <button
+            className={cn('button', styles.confirmButton)}
+            onClick={() => setShowReportModal(false)}
+          >
+            Confirm
+          </button>
+          <button
+            style={{ marginLeft: '10px', color: 'red' }}
+            onClick={() => setShowReportModal(false)}
+          >
+            Cancel
+          </button>
+        </div>
+      </Modal>
     </Layout>
   )
 }
 
 export default Item
-
-export async function getServerSideProps({ params }) {
-  const itemInfo = await getDataBySlug(params.slug)
-
-  const navigationItems = (await getAllDataByType('navigation')) || []
-  const categoryTypes = (await getAllDataByType('categories')) || []
-  const categoriesData = await Promise.all(
-    categoryTypes?.map(category => {
-      return getDataByCategory(category?.id)
-    })
-  )
-
-  const categoriesGroups = categoryTypes?.map(({ id }, index) => {
-    return { [id]: categoriesData[index] }
-  })
-
-  const categoriesType = categoryTypes?.reduce((arr, { title, id }) => {
-    return { ...arr, [id]: title }
-  }, {})
-
-  const categoriesGroup = { groups: categoriesGroups, type: categoriesType }
-
-  if (!itemInfo) {
-    return {
-      notFound: true,
-    }
-  }
-
-  return {
-    props: { itemInfo, navigationItems, categoriesGroup },
-  }
-}

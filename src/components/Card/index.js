@@ -1,12 +1,38 @@
-import React, { useState } from 'react'
-import cn from 'classnames'
-import AppLink from '../AppLink'
-import styles from './Card.module.sass'
-import Icon from '../Icon'
-import Image from '../Image'
+import React, { useState } from 'react';
+import cn from 'classnames';
+import AppLink from '../AppLink';
+import styles from './Card.module.sass';
+import Icon from '../Icon';
+import Image from '../Image';
 
 const Card = ({ className, item }) => {
-  const [visible, setVisible] = useState(false)
+  const [visible, setVisible] = useState(false);
+
+  const PriceDisplay = () => {
+    const isAuction = item?.metadata?.color.toLowerCase() === 'auction';
+    
+    return (
+      <span className={cn(styles.price, "flex items-center gap-2")}>
+      <span>₹ {item?.metadata?.price}</span>
+      {isAuction && (
+        <>
+        <style>
+          {`
+            @keyframes fadeInOut {
+              0%, 100% { opacity: 1; }
+              50% { opacity: 0; }
+            }
+            .fade {
+              animation: fadeInOut 1s infinite;
+            }
+          `}
+        </style>
+        <span className="fade" style={{ color: "red", marginLeft: "4px" }}>LIVE</span>
+        </>
+      )}
+      </span>
+    );
+  };
 
   return (
     <div className={cn(styles.card, className)} aria-hidden="true">
@@ -45,11 +71,11 @@ const Card = ({ className, item }) => {
             className={styles.bid}
             dangerouslySetInnerHTML={{ __html: item?.count }}
           />
-          <span className={styles.price}>{`₹ ${item?.metadata?.price}`}</span>
+          <PriceDisplay />
         </div>
       </AppLink>
     </div>
-  )
-}
+  );
+};
 
-export default Card
+export default Card;
