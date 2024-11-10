@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react'
+import { useRouter } from 'next/router'
 import cn from 'classnames'
 import toast from 'react-hot-toast'
 import { useStateContext } from '../../utils/context/StateContext'
@@ -26,6 +27,7 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
   const [visibleAuthModal, setVisibleAuthModal] = useState(false)
   const [price, setPrice] = useState(0)
   const [showReportModal, setShowReportModal] = useState(false) // State for the Report Modal
+  const { push } = useRouter()
 
   const counts = itemInfo?.[0]?.metadata?.count
     ? Array(itemInfo[0]?.metadata?.count)
@@ -33,6 +35,12 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
         .map((_, index) => index + 1)
     : ['Not Available']
   const [option, setOption] = useState(counts[0])
+
+  const chatWithBuyer = () => {
+    push(
+      `/chat?name=${itemInfo[0]?.title}&pic=${itemInfo[0]?.metadata?.image?.imgix_url}`
+    )
+  }
 
   const handleAddToCart = () => {
     cosmicUser?.hasOwnProperty('id') ? handleCheckout() : handleOAuth()
@@ -128,13 +136,16 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
             </div>
           </div>
           <div className={styles.details}>
-          <div className={styles.nav} style={{display: "flex", justifyContent:"space-evenly"}}>
+            <div
+              className={styles.nav}
+              style={{ display: 'flex', justifyContent: 'space-evenly' }}
+            >
               <button
                 className={cn(
                   // styles.active,
                   styles.link
                 )}
-                onClick={() => handleAddToCart()}
+                onClick={() => chatWithBuyer()}
               >
                 Chat with Buyer
               </button>
@@ -158,11 +169,11 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
                   : 'Not Available'}
               </div>
             </div>
-            
+
             <div className={styles.info}>
               {itemInfo[0]?.metadata?.description}
             </div>
-            
+
             <div className={styles.actions}>
               <div className={styles.dropdown}>
                 <Dropdown
@@ -205,9 +216,9 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
                 </button>
               </div>
             </div>
-            
+
             <br />
-            
+
             <span
               style={{ color: 'red', cursor: 'pointer', textAlign: 'right' }}
               onClick={() => setShowReportModal(true)}
