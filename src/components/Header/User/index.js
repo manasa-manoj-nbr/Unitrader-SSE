@@ -17,6 +17,14 @@ const User = ({ className, user }) => {
 
   const items = [
     {
+      title: 'View Profile',
+      icon: 'user',
+      callback: () => {
+        setCosmicUser({})
+        push('/profile')
+      },
+    },
+    {
       title: 'Disconnect',
       icon: 'exit',
       callback: () => {

@@ -19,7 +19,6 @@ import { APP_ID, AUTH_KEY, REGION } from '../../utils/constants/appConstants'
 function CometChatNoSSR() {
   const urlParams = new URLSearchParams(window.location.search)
   const name = urlParams.get('name')
-  const uid = name.toLowerCase().trim().replace(/\s/g, '-')
   const profilePic = urlParams.get('pic') || 'https://via.placeholder.com/150'
 
   const [user, setUser] = useState(null)
@@ -74,6 +73,7 @@ function CometChatNoSSR() {
 
         // Handle the user from URL parameter
         if (name && isMounted) {
+          const uid = name.toLowerCase().trim().replace(/\s/g, '-')
           try {
             const targetUser = await CometChat.getUser(uid)
             console.log('User found:', targetUser)
@@ -160,7 +160,7 @@ function CometChatNoSSR() {
               hideLayoutMode: true,
               auxilaryButtonView: () => <></>,
               secondaryButtonView: () => <></>,
-              onSendButtonClick: validateMessage,
+              // onSendButtonClick: validateMessage,
             }),
           })
         }

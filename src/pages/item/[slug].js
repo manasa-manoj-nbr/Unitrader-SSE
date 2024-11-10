@@ -57,7 +57,9 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
 
   const handleCheckout = async () => {
     let oldCart = await onAdd(itemInfo[0], option)
-    oldCart[0].metadata.price = price
+    if (itemInfo[0]?.metadata?.color.toLowerCase() === 'auction') {
+      oldCart[0].metadata.price = price
+    }
     const addCart = oldCart
     console.log(addCart)
 
@@ -205,7 +207,8 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
                 <button
                   className={cn('button', styles.button)}
                   onClick={
-                    itemInfo[0]?.metadata?.price < price
+                    itemInfo[0]?.metadata?.price < price ||
+                    itemInfo[0]?.metadata?.color.toLowerCase() !== 'auction'
                       ? handleAddToCart
                       : null
                   }

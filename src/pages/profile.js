@@ -1,5 +1,11 @@
 import { useEffect, useState } from 'react'
-import styles from '@/styles/Profile.module.css'
+import cn from 'classnames'
+import styles from '../styles/pages/profile.module.sass'
+import Layout from '../components/Layout'
+import { PageMeta } from '../components/Meta'
+import chooseBySlug from '../utils/chooseBySlug'
+import { getAllDataByType } from '../lib/cosmic'
+
 const DEFAULT_PROFILE_DATA = {
   name: 'Sanjay A',
   title: '2023BCS0020',
@@ -25,7 +31,7 @@ const DEFAULT_PROFILE_DATA = {
     { id: 5, src: '/api/placeholder/400/300', alt: 'Photo 5' },
     { id: 6, src: '/api/placeholder/400/300', alt: 'Photo 6' },
   ],
-  soled: [
+  sold: [
     {
       id: 1,
       src: '/api/placeholder/400/300',
@@ -57,8 +63,14 @@ const DEFAULT_PROFILE_DATA = {
   ],
 }
 
-const ProfilePage = ({ profileData = DEFAULT_PROFILE_DATA }) => {
-  const [activeTab, setActiveTab] = useState('photos')
+const ProfilePage = ({
+  profileData = DEFAULT_PROFILE_DATA,
+  navigationItems,
+  landing,
+}) => {
+  const [activeTab, setActiveTab] = useState('purchases')
+  const infoAbout = chooseBySlug(landing, 'profile')
+
   const {
     name,
     title,
@@ -68,7 +80,7 @@ const ProfilePage = ({ profileData = DEFAULT_PROFILE_DATA }) => {
     bio,
     socialLinks,
     purchases,
-    soled,
+    sold,
   } = profileData
 
   const renderContent = () => {
@@ -83,10 +95,10 @@ const ProfilePage = ({ profileData = DEFAULT_PROFILE_DATA }) => {
             ))}
           </div>
         )
-      case 'soled':
+      case 'sold':
         return (
           <div className={styles.galleries}>
-            {soled.map(gallery => (
+            {sold.map(gallery => (
               <div key={gallery.id} className={styles.galleryItem}>
                 <img src={gallery.src} alt={gallery.alt} />
                 <div className={styles.galleryInfo}>
@@ -103,66 +115,83 @@ const ProfilePage = ({ profileData = DEFAULT_PROFILE_DATA }) => {
   }
 
   return (
-    <div className={styles.profileContainer}>
-      <div className={styles.headerWrapper}>
-        <header></header>
-        <div className={styles.colsContainer}>
-          {/* Left Column */}
-          <div className={styles.leftCol}>
-            <div className={styles.imgContainer}>
-              <img src={avatar} alt={name} />
-              <span className={styles.statusDot}></span>
+    <Layout navigationPaths={navigationItems[0]?.metadata}>
+      <PageMeta
+        title={'Profile | UniTrader'}
+        description={'UniTrader is your friendly college-hood marketplace.'}
+      />
+      <div className={cn('section', styles.section)}>
+        <div className={cn('container', styles.container)}>
+          <div className={styles.profileContainer}>
+            <div className={styles.headerWrapper}>
+              <header></header>
+              <div className={styles.colsContainer}>
+                {/* Left Column */}
+                <div className={styles.leftCol}>
+                  <div className={styles.imgContainer}>
+                    <img src={avatar} alt={name} />
+                    <span className={styles.statusDot}></span>
+                  </div>
+                  <h2>{name}</h2>
+                  <p className={styles.title}>{title}</p>
+                  <p className={styles.email}>{email}</p>
+
+                  <ul className={styles.about}>
+                    {Object.entries(stats).map(([key, value]) => (
+                      <li key={key}>
+                        <span>{value.toLocaleString()}</span>
+                        {key.charAt(0).toUpperCase() + key.slice(1)}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className={styles.content}>
+                    <p>{bio}</p>
+                    <ul className={styles.socialIcons}>
+                      {socialLinks.map(link => (
+                        <li key={link.name}>
+                          <a href={link.url} aria-label={link.name}>
+                            <i className={link.icon}></i>
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Right Column */}
+                <div className={styles.rightCol}>
+                  <nav>
+                    <ul className={styles.tabs}>
+                      {['purchases', 'sold'].map(tab => (
+                        <li key={tab}>
+                          <button
+                            onClick={() => setActiveTab(tab)}
+                            className={activeTab === tab ? styles.active : ''}
+                          >
+                            {tab}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </nav>
+
+                  {renderContent()}
+                </div>
+              </div>
             </div>
-            <h2>{name}</h2>
-            <p className={styles.title}>{title}</p>
-            <p className={styles.email}>{email}</p>
-
-            <ul className={styles.about}>
-              {Object.entries(stats).map(([key, value]) => (
-                <li key={key}>
-                  <span>{value.toLocaleString()}</span>
-                  {key.charAt(0).toUpperCase() + key.slice(1)}
-                </li>
-              ))}
-            </ul>
-
-            <div className={styles.content}>
-              <p>{bio}</p>
-              <ul className={styles.socialIcons}>
-                {socialLinks.map(link => (
-                  <li key={link.name}>
-                    <a href={link.url} aria-label={link.name}>
-                      <i className={link.icon}></i>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          {/* Right Column */}
-          <div className={styles.rightCol}>
-            <nav>
-              <ul className={styles.tabs}>
-                {['purchases', 'soled'].map(tab => (
-                  <li key={tab}>
-                    <button
-                      onClick={() => setActiveTab(tab)}
-                      className={activeTab === tab ? styles.active : ''}
-                    >
-                      {tab}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-
-            {renderContent()}
           </div>
         </div>
       </div>
-    </div>
+    </Layout>
   )
 }
 
 export default ProfilePage
+
+export async function getServerSideProps() {
+  const navigationItems = (await getAllDataByType('navigation')) || []
+  return {
+    props: { navigationItems },
+  }
+}

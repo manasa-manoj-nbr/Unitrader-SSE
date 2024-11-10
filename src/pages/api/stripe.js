@@ -33,7 +33,7 @@ export default async function handler(req, res) {
             quantity: item.quantity,
           }
         }),
-        success_url: `${req.headers.origin}/`,
+        success_url: `${req.headers.origin}/qr_code`,
         cancel_url: `${req.headers.origin}/`,
       }
 

@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@cometchat/calls-sdk-javascript": "^4.0.10",
     "@cometchat/chat-sdk-javascript": "^4.0.10",
     "@cometchat/chat-uikit-react": "^4.3.21",
     "@cosmicjs/sdk": "^1.0.9",
