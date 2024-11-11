@@ -230,7 +230,7 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
             </span>
           </div>
         </div>
-        <HotBid classSection="section" info={categoriesGroup['groups'][0]} />
+        {/* <HotBid classSection="section" info={categoriesGroup['groups'][0]} /> */}
         {/* <Discover
           info={categoriesGroup['groups']}
           type={categoriesGroup['type']}

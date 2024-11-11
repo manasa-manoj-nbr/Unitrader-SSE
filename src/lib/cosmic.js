@@ -23,7 +23,7 @@ export async function getDataByCategory(id) {
   } catch (error) {
     // Don't throw if an slug doesn't exist
     if (is404(error)) return
-    throw error
+    // throw error
   }
 }
 

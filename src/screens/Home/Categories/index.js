@@ -49,7 +49,7 @@ const Categories = ({ info, type }) => {
       <div className={styles.section}>
         <div className={cn('container', styles.container)}>
           <div className={styles.wrapper}>
-            <h3 className={cn('h3', styles.title)}>Hot collections</h3>
+            <h3 className={cn('h3', styles.title)}>New Collections</h3>
             <div className={styles.inner}>
               <Slider className="collection-slider" {...settings}>
                 {info?.length &&
@@ -62,7 +62,9 @@ const Categories = ({ info, type }) => {
                       >
                         <div className={styles.cart}>
                           <div className={styles.gallery}>
-                            {category[key]?.slice(0, 7)?.map((intro, index) => (
+                            {category[key]?.slice(0, 7)?.map((intro, index) => {
+                              console.log(category[key][0])
+                              return (
                               <div className={styles.preview} key={index}>
                                 <Image
                                   size={{ width: '100%', height: '98px' }}
@@ -71,7 +73,7 @@ const Categories = ({ info, type }) => {
                                   objectFit="cover"
                                 />
                               </div>
-                            ))}
+                            )})}
                           </div>
                           <div className={styles.subtitle}>
                             {type[key] || ''}

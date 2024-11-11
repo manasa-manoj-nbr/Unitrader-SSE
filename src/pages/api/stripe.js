@@ -19,7 +19,7 @@ export default async function handler(req, res) {
 
           return {
             price_data: {
-              currency: 'usd',
+              currency: 'inr',
               product_data: {
                 name: item.title,
                 images: [img],
@@ -30,10 +30,10 @@ export default async function handler(req, res) {
               enabled: true,
               minimum: 1,
             },
-            quantity: item.quantity,
+            quantity: 1,
           }
         }),
-        success_url: `${req.headers.origin}/qr_code`,
+        success_url: `${req.headers.origin}/qr_code?item_slug=${req.body.map(item =>item.title)}&image=${req.body.map(item =>item.metadata.image.imgix_url)}`,
         cancel_url: `${req.headers.origin}/`,
       }
 

@@ -1,147 +1,132 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react'
-import cn from 'classnames'
-import { useRouter } from 'next/router'
-import AppLink from '../AppLink'
-import Loader from '../Loader'
-// import registerFields from '../../utils/constants/registerFields'
-import { useStateContext } from '../../utils/context/StateContext'
-import { setToken } from '../../utils/token'
+import React, { useState } from 'react';
+import cn from 'classnames';
+import { useRouter } from 'next/router';
+import AppLink from '../AppLink';
+import Loader from '../Loader';
+import { useStateContext } from '../../utils/context/StateContext';
+import { setToken } from '../../utils/token';
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import styles from './OAuth.module.sass';
 
-import styles from './OAuth.module.sass'
+// Your Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyDQutn3GLiZLDQutVE0qnBxfFgzFNo04FA",
+  authDomain: "unitrader-4907f.firebaseapp.com",
+  projectId: "unitrader-4907f",
+  storageBucket: "unitrader-4907f.firebasestorage.app",
+  messagingSenderId: "1060735042752",
+  appId: "1:1060735042752:web:40b992be4a3feda1d7d925"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+// provider.setCustomParameters({
+//   hd: "iiitkottayam.ac.in" 
+// });
 
 const OAuth = ({ className, handleClose, handleOAuth, disable }) => {
-  const { setCosmicUser } = useStateContext()
-  const { push } = useRouter()
-
-  // const [{ email, password }, setFields] = useState(() => registerFields)
-  const [fillFiledMessage, setFillFiledMessage] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  const inputElement = useRef(null)
-
-  useEffect(() => {
-    if (inputElement.current) {
-      inputElement.current.focus()
-    }
-  }, [disable])
+  const { setCosmicUser } = useStateContext();
+  const { push } = useRouter();
+  const [fillFiledMessage, setFillFiledMessage] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleGoHome = () => {
-    push('/')
-  }
+    push('/');
+  };
 
-  const handleChange = ({ target: { name, value } }) =>
-    setFields(prevFields => ({
-      ...prevFields,
-      [name]: value,
-    }))
+  const handleGoogleSignIn = async () => {
+    try {
+      setLoading(true);
+      setFillFiledMessage('');
+      
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      // Verify email domain
+      if (!user.email.endsWith('@iiitkottayam.ac.in') && !user.email.endsWith('@gmail.com')) {
+        setFillFiledMessage('Please use your college email address');
+        setLoading(false);
+        return;
+      }
 
-  const submitForm = useCallback(
-    async e => {
-      e.preventDefault()
-      // fillFiledMessage?.length && setFillFiledMessage('')
-      setLoading(true)
-      // if ((email, password)) {
-        const auth = await fetch('/api/auth', {
-          method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email: 'email@mail.com', password: 'passaword' }),
-        })
-        // const cosmicUser = await auth.json()
-        // create a sample json object to test the code
-        const cosmicUser = {
-          user: {
-            id: '123',
-            first_name: 'John',
-            // avatar_url: 'https://placehold.co/400',
-          },
+      // Create user object
+      const cosmicUser = {
+        user: {
+          id: user.uid,
+          first_name: user.displayName?.split(' ')[0] || '',
+          avatar_url: user.photoURL || '',
+          email: user.email,
         }
+      };
 
-        if (cosmicUser?.hasOwnProperty('user')) {
-          setCosmicUser(cosmicUser['user'])
-          setToken({
-            id: cosmicUser['user']['id'],
-            first_name: cosmicUser['user']['first_name'],
-            avatar_url: cosmicUser['user']['avatar_url'],
-          })
+      
 
-          setFillFiledMessage('Congrats!')
-          handleOAuth(cosmicUser['user'])
-          // setFields(registerFields)
-          handleClose()
-        } else {
-          setFillFiledMessage('Please first register first')
-        }
-      // } else {
-      //   setFillFiledMessage('Please fill all fields')
-      // }
-      setLoading(false)
-    },
-    [
-      // fillFiledMessage?.length,
-      // email,
-      // password,
-      setCosmicUser,
-      handleOAuth,
-      handleClose,
-    ]
-  )
+      // Update state and token
+      setCosmicUser(cosmicUser.user);
+      setToken({
+        id: cosmicUser.user.id,
+        first_name: cosmicUser.user.first_name,
+        avatar_url: cosmicUser.user.avatar_url
+      });
+
+      setFillFiledMessage('Successfully signed in!');
+      handleOAuth(cosmicUser.user);
+      handleClose();
+
+    } catch (error) {
+      console.error('Error during Google sign-in:', error);
+      setFillFiledMessage(
+        error.code === 'auth/popup-closed-by-user'
+          ? 'Sign-in cancelled'
+          : 'Error signing in. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className={cn(className, styles.transfer)}>
       <div className={cn('h4', styles.title)}>
         Authentication with{' '}
-        <AppLink target="_blank" href={`https://www.example.com`}>
+        <AppLink target="_blank" href={`#`}>
           your college email
         </AppLink>
       </div>
       <div className={styles.text}>
-        To sell an item you need to register an account at{' '}
-        <AppLink target="_blank" href={`https://www.example.com`}>
+        To sell an item you need to sign in with your college email address at{' '}
+        <AppLink target="_blank" href={`#`}>
           UniTrader
         </AppLink>
       </div>
       <div className={styles.error}>{fillFiledMessage}</div>
-      <form className={styles.form} action="submit" onSubmit={submitForm}>
-        {/* <div className={styles.field}>
-          <input
-            ref={inputElement}
-            className={styles.input}
-            type="email"
-            name="email"
-            placeholder="Email"
-            onChange={handleChange}
-            value={email}
-            required
-          />
-        </div>
-        <div className={styles.field}>
-          <input
-            className={styles.input}
-            type="password"
-            name="password"
-            placeholder="Password"
-            onChange={handleChange}
-            value={password}
-            required
-          />
-        </div> */}
-        <div className={styles.btns}>
-          <button type="submit" className={cn('button', styles.button)}>
-            {loading ? <Loader /> : 'Continue'}
-          </button>
-          <button
-            onClick={disable ? handleGoHome : handleClose}
-            className={cn('button-stroke', styles.button)}
-          >
-            {disable ? 'Return Home Page' : 'Cancel'}
-          </button>
-        </div>
-      </form>
+      <div className={styles.btns}>
+        <button
+          onClick={handleGoogleSignIn}
+          className={cn('button', styles.button, styles.googleButton)}
+          disabled={loading}
+        >
+          {loading ? (
+            <Loader />
+          ) : (
+            <>
+              
+              Sign in with Google
+            </>
+          )}
+        </button>
+        <button
+          onClick={disable ? handleGoHome : handleClose}
+          className={cn('button-stroke', styles.button)}
+        >
+          {disable ? 'Return Home Page' : 'Cancel'}
+        </button>
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default OAuth
+export default OAuth;

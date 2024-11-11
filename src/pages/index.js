@@ -55,11 +55,11 @@ const Home = ({
   return (
     <Layout navigationPaths={navigationItems[0]?.metadata}>
       <Description info={chooseBySlug(landing, 'marketing')} />
-      <HotBid classSection="section" info={categoriesGroup['groups'][0]} />
-      {/* <Categories
+      {/* <HotBid classSection="section" info={categoriesGroup['groups'][0]} /> */}
+      <Categories
         info={categoriesGroup['groups']}
         type={categoriesGroup['type']}
-      /> */}
+      />
       {/* <Selection info={categoriesGroup['groups']} type={categoryTypes} /> */}
       {/* <Intro info={chooseBySlug(landing, 'introduction')} /> */}
       {/* <Partners info={reviews} /> */}
@@ -76,12 +76,15 @@ export default Home
 export async function getServerSideProps() {
   const reviews = (await getAllDataByType('reviews')) || []
   const landing = (await getAllDataByType('landings')) || []
+  // const categoryTypes = []
   const categoryTypes = (await getAllDataByType('categories')) || []
   const categoriesData = await Promise.all(
-    categoryTypes?.map(category => {
+    categoryTypes.map(category => {
       return getDataByCategory(category?.id)
     })
   )
+  console.log('>>>> categoriesData', categoriesData)
+
   const navigationItems = (await getAllDataByType('navigation')) || []
 
   const categoriesGroups = categoryTypes?.map(({ id }, index) => {
@@ -96,7 +99,7 @@ export async function getServerSideProps() {
 
   return {
     props: {
-      reviews,
+      // reviews,
       landing,
       categoriesGroup,
       categoryTypes,

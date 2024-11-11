@@ -15,6 +15,7 @@ import {
 } from '@cometchat/chat-uikit-react'
 import { CometChat } from '@cometchat/chat-sdk-javascript'
 import { APP_ID, AUTH_KEY, REGION } from '../../utils/constants/appConstants'
+import { useStateContext } from '../../utils/context/StateContext'
 
 function CometChatNoSSR() {
   const urlParams = new URLSearchParams(window.location.search)
@@ -24,6 +25,8 @@ function CometChatNoSSR() {
   const [user, setUser] = useState(null)
   const [selectedUser, setSelectedUser] = useState(null)
   const [isInitialized, setIsInitialized] = useState(false)
+  const { cosmicUser } = useStateContext()
+
 
   const sendDefaultMessage = async receiverId => {
     try {
@@ -62,8 +65,10 @@ function CometChatNoSSR() {
 
         const loggedInUser = await CometChatUIKit.getLoggedinUser()
 
+        const UserId = cosmicUser["first_name"] === 'Sanjay'? 'commetchat-uid-1' : 'scientific-calculator'
+
         if (!loggedInUser && isMounted) {
-          const user = await CometChatUIKit.login('cometchat-uid-1', AUTH_KEY)
+          const user = await CometChatUIKit.login(UserId, AUTH_KEY)
           console.log('Login Successful', { user })
           setUser(user)
         } else if (isMounted) {
@@ -103,12 +108,18 @@ function CometChatNoSSR() {
 
     return () => {
       isMounted = false
+      // CometChat.logout().then(
+      //   () => {
+      //     console.log('Logout completed successfully')
+      //   },
+      //   error => {
+      //     console.log('Logout failed with exception:', { error })
+      //   }
+      // )
     }
   }, [name, isInitialized, profilePic])
 
-  const validateMessage = message => {
-    return true
-  }
+  const validateMessage = message => {}
 
   const conversationsStyle = new ConversationsStyle({
     width: '100%',

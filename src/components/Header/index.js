@@ -68,7 +68,7 @@ const Headers = ({ navigation }) => {
                   href={x?.url || `/search`}
                   key={index}
                 >
-                  {x.title}
+                  {x.title === 'Chat' && !cosmicUser?.['id'] ? null : x.title}
                 </AppLink>
               ))}
             </nav>
@@ -76,7 +76,7 @@ const Headers = ({ navigation }) => {
           <div className={styles.version}>
             <Theme className="theme-big" />
           </div>
-          <AppLink
+          {/* <AppLink
             aria-label="search"
             aria-hidden="true"
             className={cn('button-small', styles.button)}
@@ -84,7 +84,7 @@ const Headers = ({ navigation }) => {
           >
             <Icon name="search" size="20" />
             Search
-          </AppLink>
+          </AppLink> */}
           {cosmicUser?.['id'] ? (
             <User className={styles.user} user={cosmicUser} />
           ) : (

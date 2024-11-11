@@ -194,7 +194,7 @@ const Upload = ({ navigationItems, categoriesType }) => {
                       <Icon name="upload-file" size="24" />
                     </div>
                     <div className={styles.format}>
-                      PNG, GIF, WEBP, MP4 or MP3. Max 1Gb.
+                      Upload images or videos
                     </div>
                   </div>
                 </div>
@@ -224,7 +224,7 @@ const Upload = ({ navigationItems, categoriesType }) => {
                     <div className={styles.row}>
                       <div className={styles.col}>
                         <div className={styles.field}>
-                          <div className={styles.label}>Colors</div>
+                          <div className={styles.label}>Trade Type</div>
                           <Dropdown
                             className={styles.dropdown}
                             value={color}
@@ -262,8 +262,8 @@ const Upload = ({ navigationItems, categoriesType }) => {
                 </div>
               </div>
               <div className={styles.options}>
-                <div className={styles.category}>Choose collection</div>
-                <div className={styles.text}>Choose an exiting Categories</div>
+                <div className={styles.category}>Choose category</div>
+                <div className={styles.text}>Choose an exiting category</div>
                 <Cards
                   className={styles.cards}
                   category={chooseCategory}

@@ -17,6 +17,9 @@ import { OPTIONS } from '../utils/constants/appConstants'
 import styles from '../styles/pages/Search.module.sass'
 import { PageMeta } from '../components/Meta'
 
+import Cookies from 'js-cookie'
+
+
 const Search = ({ categoriesGroup, navigationItems, categoryData }) => {
   const { query, push } = useRouter()
   const { categories } = useStateContext()
@@ -38,9 +41,7 @@ const Search = ({ categoriesGroup, navigationItems, categoryData }) => {
   const debouncedMinTerm = useDebounce(min, 600)
   const debouncedMaxTerm = useDebounce(max, 600)
 
-  const [activeIndex, setActiveIndex] = useState(
-    query['category'] || ''
-  )
+  const [activeIndex, setActiveIndex] = useState(query['category'] || '')
   const [option, setOption] = useState(query['color'] || OPTIONS[0])
 
   const handleChange = ({ target: { name, value } }) => {
@@ -136,16 +137,13 @@ const Search = ({ categoriesGroup, navigationItems, categoryData }) => {
     return () => {
       isMount = false
     }
-
   }, [debouncedSearchTerm, debouncedMinTerm, debouncedMaxTerm])
 
   return (
     <Layout navigationPaths={navigationItems[0]?.metadata}>
       <PageMeta
         title={'Discover | UniTrader'}
-        description={
-          'UniTrader is your friendly college-hood marketplace.'
-        }
+        description={'UniTrader is your friendly college-hood marketplace.'}
       />
       <div className={cn('section-pt80', styles.section)}>
         <div className={cn('container', styles.container)}>
@@ -236,9 +234,23 @@ const Search = ({ categoriesGroup, navigationItems, categoryData }) => {
               </div>
               <div className={styles.list}>
                 {searchResult?.length ? (
-                  searchResult?.map((x, index) => (
-                    <Card className={styles.card} item={x} key={index} />
-                  ))
+                  searchResult?.map((x, index) => {
+                    // Check if the current item is already in the user's purchase history (stored in a cookie)
+                    const purchasedItems = Cookies.get('purchasedItems')
+                      ? JSON.parse(Cookies.get('purchasedItems'))
+                      : []
+                    const isItemPurchased = purchasedItems.some(
+                      item => item.slug === x?.title
+                    )
+
+                    if (!isItemPurchased) {
+                      return (
+                        <Card className={styles.card} item={x} key={index} />
+                      )
+                    } else {
+                      return null // Don't render the card if the item is already purchased
+                    }
+                  })
                 ) : (
                   <p className={styles.inform}>Try another category!</p>
                 )}
