@@ -46,7 +46,7 @@ const OAuth = ({ className, handleClose, handleOAuth, disable }) => {
       const user = result.user;
       
       // Verify email domain
-      if (!user.email.endsWith('@iiitkottayam.ac.in') && !user.email.endsWith('@gmail.com')) {
+      if (!user.email.endsWith('@iiitkottayam.ac.in') && !user.email === 'pavan082005@gmail.com') {
         setFillFiledMessage('Please use your college email address');
         setLoading(false);
         return;

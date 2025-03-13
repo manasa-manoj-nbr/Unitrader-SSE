@@ -1,0 +1,201 @@
+.pageContainer
+  display: flex
+  flex-direction: column
+  height: 100vh
+  background: #131313
+
+.navbar
+  display: flex
+  align-items: center
+  justify-content: space-between
+  background: #1c1c1c
+  padding: 0 1rem
+  height: 60px
+  .navbarLeft, .navbarRight
+    display: flex
+    align-items: center
+  .logo
+    margin-right: 1rem
+  .navLinks
+    a
+      margin: 0 0.75rem
+      color: #ccc
+      text-decoration: none
+      &:hover, &.activeLink
+        color: #fff
+
+.chatContainer
+  display: flex
+  flex: 1
+
+.leftSidebar
+  position: relative
+  width: 300px
+  background: #2c2c2c
+  border-right: 1px solid #444
+  padding: 1rem
+  transition: width 0.3s ease
+  border-radius: 0 10px 10px 0
+  &.collapsed
+    width: 60px
+  .sidebarToggle
+    margin-bottom: 1rem
+    .sidebarToggleButton
+      background: #444
+      border: none
+      color: #fff
+      padding: 0.25rem 0.5rem
+      border-radius: 5px
+      cursor: pointer
+  .searchContainer
+    margin-bottom: 1rem
+    .searchInput
+      width: 100%
+      padding: 0.5rem
+      border: none
+      border-radius: 5px
+      outline: none
+  .chatList
+    overflow-y: auto
+    .chatListItem
+      position: relative
+      display: flex
+      align-items: center
+      padding: 0.5rem
+      margin-bottom: 0.5rem
+      background: linear-gradient(135deg, #2c2c2c, #1f1f1f)
+      border-radius: 10px
+      transition: background 0.2s ease
+      cursor: pointer
+      &:hover
+        background: linear-gradient(135deg, #3a3a3a, #2f2f2f)
+      .profilePic
+        margin-right: 0.5rem
+        img
+          border-radius: 50%
+          border: 2px solid #444
+      .chatListContent
+        flex: 1
+        .chatListName
+          font-weight: bold
+          color: #fff
+        .chatListMsg
+          font-size: 0.8rem
+          color: #aaa
+      .chatListTime
+        position: absolute
+        top: 0.5rem
+        right: 0.5rem
+        font-size: 0.8rem
+        color: #aaa
+
+.mainChatArea
+  flex: 1
+  display: flex
+  flex-direction: column
+  background: #1f1f1f
+  border-radius: 10px
+  margin: 1rem
+  overflow: hidden
+  .mainChatHeader
+    display: flex
+    justify-content: space-between
+    padding: 1rem
+    background: #2c2c2c
+    border-bottom: 1px solid #444
+    .chatUserInfo
+      .chatUserName
+        font-size: 1.2rem
+        font-weight: bold
+        color: #fff
+      .chatUserEmail
+        font-size: 0.9rem
+        color: #aaa
+    .chatHeaderTime
+      font-size: 0.9rem
+      color: #aaa
+  .messagesArea
+    flex: 1
+    padding: 1rem
+    overflow-y: auto
+    .messageRow
+      display: flex
+      margin-bottom: 0.5rem
+      &.messageRowLeft
+        justify-content: flex-start
+      &.messageRowRight
+        justify-content: flex-end
+      .messageBubble
+        max-width: 60%
+        padding: 0.5rem 0.75rem
+        border-radius: 10px
+        background: #333
+        color: #fff
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3)
+        .messageUser
+          font-weight: bold
+          margin-bottom: 0.25rem
+        .messageText
+          word-wrap: break-word
+    .dayDivider
+      text-align: center
+      color: #999
+      margin: 1rem 0
+  .chatFooter
+    display: flex
+    align-items: center
+    padding: 0.75rem 1rem
+    background: #2c2c2c
+    button.footerIcon
+      background: none
+      border: none
+      color: #ccc
+      font-size: 1.2rem
+      margin-right: 0.5rem
+      cursor: pointer
+      &:hover
+        color: #fff
+    .footerInput
+      flex: 1
+      margin: 0 0.5rem
+      padding: 0.5rem
+      border-radius: 5px
+      border: none
+      outline: none
+      background: #3a3a3a
+      color: #fff
+
+.navbar
+  display: flex
+  align-items: center
+  justify-content: space-between
+  background: #1c1c1c
+  padding: 0 1rem
+  height: 60px
+  .navbarLeft, .navbarRight
+    display: flex
+    align-items: center
+  .logo
+    margin-right: 1rem
+  .navLinks
+    a
+      margin: 0 0.75rem
+      color: #ccc
+      text-decoration: none
+      &:hover, &.activeLink
+        color: #fff
+
+.pageFooter
+  text-align: center
+  padding: 0.5rem
+  background: #1c1c1c
+  color: #fff
+  font-size: 0.9rem
+
+.loadingScreen
+  display: flex
+  align-items: center
+  justify-content: center
+  height: 100vh
+  font-size: 1rem
+  color: #fff

@@ -49,7 +49,7 @@ const Headers = ({ navigation }) => {
       <header className={styles.header}>
         <div className={cn('container', styles.container)} aria-hidden="true">
           <AppLink className={styles.logo} href="/">
-            <Image
+            {/* <Image
               width={256}
               height={120}
               objectFit='contain'
@@ -57,7 +57,7 @@ const Headers = ({ navigation }) => {
               src={navigation['logo']?.imgix_url}
               alt="Logo"
               priority
-            />
+            /> */}
           </AppLink>
           <div className={cn(styles.wrapper, { [styles.active]: visibleNav })}>
             <nav className={styles.nav}>

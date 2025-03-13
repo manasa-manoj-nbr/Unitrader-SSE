@@ -53,22 +53,25 @@ const Home = ({
   ])
 
   return (
-    <Layout navigationPaths={navigationItems[0]?.metadata}>
-      <Description info={chooseBySlug(landing, 'marketing')} />
-      {/* <HotBid classSection="section" info={categoriesGroup['groups'][0]} /> */}
-      <Categories
-        info={categoriesGroup['groups']}
-        type={categoriesGroup['type']}
-      />
-      {/* <Selection info={categoriesGroup['groups']} type={categoryTypes} /> */}
-      {/* <Intro info={chooseBySlug(landing, 'introduction')} /> */}
-      {/* <Partners info={reviews} /> */}
-      {/* <Discover
+    <div suppressHydrationWarning={true}>
+      <Layout navigationPaths={navigationItems[0]?.metadata}>
+        <Description info={chooseBySlug(landing, 'marketing')} />
+        {/* <HotBid classSection="section" info={categoriesGroup['groups'][0]} /> */}
+        <Categories
+          info={categoriesGroup['groups']}
+          type={categoriesGroup['type']}
+        />
+        {/* <Selection info={categoriesGroup['groups']} type={categoryTypes} /> */}
+        {/* <Intro info={chooseBySlug(landing, 'introduction')} /> */}
+        {/* <Partners info={reviews} /> */}
+        {/* <Discover
         info={categoriesGroup['groups']}
         type={categoriesGroup['type']}
       /> */}
-    </Layout>
+      </Layout>
+    </div>
   )
+
 }
 
 export default Home

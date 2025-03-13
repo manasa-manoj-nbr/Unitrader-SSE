@@ -7,9 +7,9 @@ import '../styles/app.sass'
 function MyApp({ Component, pageProps }) {
   return (
     <StateContext>
-       <NextProgress delay={300} options={{ showSpinner: true }} />
+      <NextProgress delay={300} options={{ showSpinner: true }} />
       <Toaster />
-      <Component {...pageProps} />
+      {typeof window === 'undefined' ? null : <Component {...pageProps} />}
     </StateContext>
   )
 }
