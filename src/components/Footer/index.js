@@ -60,7 +60,7 @@ const Footers = () => {
       <div>
         <div className={styles.copyright} aria-hidden="true">
           <span className={styles.cosmicGroup}>
-            <p className={styles.powered}>©2024 UniTrader </p>
+            <p className={styles.powered}>©2025 UniTrader </p>
             <a href="#">
               <Image
                 className={styles.cosmic}

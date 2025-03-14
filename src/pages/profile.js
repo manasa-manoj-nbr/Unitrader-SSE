@@ -1,112 +1,108 @@
-import { useEffect, useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import cn from 'classnames'
-import styles from '../styles/pages/profile.module.sass'
 import Layout from '../components/Layout'
 import { PageMeta } from '../components/Meta'
 import chooseBySlug from '../utils/chooseBySlug'
-import { getAllDataByType } from '../lib/cosmic'
+import { useStateContext } from '../utils/context/StateContext'
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from '../lib/firebase'
 
-const DEFAULT_PROFILE_DATA = {
-  name: 'Sanjay A',
-  title: '2023BCS0020',
-  email: 'sanjay23bcs20@iiitkottayam.ac.in',
-  avatar: '/api/placeholder/120/120',
-  stats: {
-    followers: 4073,
-    following: 322,
-    attraction: 200543,
-  },
-  bio: 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aliquam erat volutpat. Morbi imperdiet, mauris ac auctor dictum, nisl ligula egestas nulla.',
-  socialLinks: [
-    { name: 'Twitter', icon: 'fab fa-twitter', url: '#' },
-    { name: 'Pinterest', icon: 'fab fa-pinterest', url: '#' },
-    { name: 'Facebook', icon: 'fab fa-facebook', url: '#' },
-    { name: 'Dribbble', icon: 'fab fa-dribbble', url: '#' },
-  ],
-  purchases: [
-    { id: 1, src: '/api/placeholder/400/300', alt: 'Photo 1' },
-    { id: 2, src: '/api/placeholder/400/300', alt: 'Photo 2' },
-    { id: 3, src: '/api/placeholder/400/300', alt: 'Photo 3' },
-    { id: 4, src: '/api/placeholder/400/300', alt: 'Photo 4' },
-    { id: 5, src: '/api/placeholder/400/300', alt: 'Photo 5' },
-    { id: 6, src: '/api/placeholder/400/300', alt: 'Photo 6' },
-  ],
-  sold: [
-    {
-      id: 1,
-      src: '/api/placeholder/400/300',
-      alt: 'Gallery 1',
-      title: 'Gallery Collection 1',
-      count: 15,
-    },
-    {
-      id: 2,
-      src: '/api/placeholder/400/300',
-      alt: 'Gallery 2',
-      title: 'Gallery Collection 2',
-      count: 23,
-    },
-    {
-      id: 3,
-      src: '/api/placeholder/400/300',
-      alt: 'Gallery 3',
-      title: 'Gallery Collection 3',
-      count: 18,
-    },
-    {
-      id: 4,
-      src: '/api/placeholder/400/300',
-      alt: 'Gallery 4',
-      title: 'Gallery Collection 4',
-      count: 27,
-    },
-  ],
-}
-
-const ProfilePage = ({
-  profileData = DEFAULT_PROFILE_DATA,
-  navigationItems,
-  landing,
-}) => {
+const ProfilePage = ({ navigationItems }) => {
+  const { cosmicUser } = useStateContext()
+  const [profileData, setProfileData] = useState(null)
   const [activeTab, setActiveTab] = useState('purchases')
-  const infoAbout = chooseBySlug(landing, 'profile')
+  const infoAbout = chooseBySlug(null, 'profile') // Adjust landing if needed
 
-  const {
-    name,
-    title,
-    email,
-    avatar,
-    stats,
-    bio,
-    socialLinks,
-    purchases,
-    sold,
-  } = profileData
+  // Helper: Compute roll number from email if domain is "iiitkottayam.ac.in"
+  const computeRollNumber = email => {
+    if (!email.endsWith('@iiitkottayam.ac.in')) return null
+    const localPart = email.split('@')[0] // e.g. "pavan23bcy2"
+    const pattern = /^([a-z]+)(\d{2})([a-z]+)(\d+)$/i
+    const match = localPart.match(pattern)
+    if (!match) return null
+    const [, , year, deptCode, roll] = match
+    const paddedRoll = roll.padStart(4, '0')
+    return `20${year}${deptCode}${paddedRoll}`
+  }
+
+  // Fetch logged-in user's Firestore document
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (cosmicUser && cosmicUser.id) {
+        try {
+          const userDocRef = doc(db, 'users', cosmicUser.id)
+          const userDocSnap = await getDoc(userDocRef)
+          if (userDocSnap.exists()) {
+            const firestoreData = userDocSnap.data()
+            console.log('Fetched Firestore user data:', firestoreData)
+            setProfileData(firestoreData)
+          } else {
+            console.log(
+              'No user data found in Firestore for UID:',
+              cosmicUser.id
+            )
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error)
+        }
+      }
+    }
+    fetchUserData()
+  }, [cosmicUser])
+
+  if (!profileData) {
+    return (
+      <Layout navigationPaths={navigationItems}>
+        <PageMeta
+          title="Profile | UniTrader"
+          description="UniTrader is your friendly college-hood marketplace."
+        />
+        <div className="loading">Loading profile...</div>
+        <style jsx>{`
+          .loading {
+            color: white;
+            text-align: center;
+            padding: 20px;
+          }
+        `}</style>
+      </Layout>
+    )
+  }
+
+  const rollNumber = computeRollNumber(profileData.email)
 
   const renderContent = () => {
     switch (activeTab) {
       case 'purchases':
         return (
-          <div className={styles.photos}>
-            {purchases.map(photo => (
-              <div key={photo.id} className={styles.photoItem}>
-                <img src={photo.src} alt={photo.alt} />
-              </div>
-            ))}
+          <div className="photos">
+            {profileData.purchases && profileData.purchases.length > 0 ? (
+              profileData.purchases.map((photo, index) => (
+                <div key={index} className="photoItem">
+                  <img src={photo.src} alt={photo.alt} />
+                </div>
+              ))
+            ) : (
+              <p>No purchases found.</p>
+            )}
           </div>
         )
       case 'sold':
         return (
-          <div className={styles.galleries}>
-            {sold.map(gallery => (
-              <div key={gallery.id} className={styles.galleryItem}>
-                <img src={gallery.src} alt={gallery.alt} />
-                <div className={styles.galleryInfo}>
-                  <h3>{gallery.title}</h3>
-                  <span>{gallery.count} Photos</span>
+          <div className="galleries">
+            {profileData.sold && profileData.sold.length > 0 ? (
+              profileData.sold.map((gallery, index) => (
+                <div key={index} className="galleryItem">
+                  <img src={gallery.src} alt={gallery.alt} />
+                  <div className="galleryInfo">
+                    <h3>{gallery.title}</h3>
+                    <span>{gallery.count} Photos</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p>No sold items found.</p>
+            )}
           </div>
         )
       default:
@@ -115,74 +111,364 @@ const ProfilePage = ({
   }
 
   return (
-    <Layout navigationPaths={navigationItems[0]?.metadata}>
+    <Layout navigationPaths={navigationItems}>
       <PageMeta
-        title={'Profile | UniTrader'}
-        description={'UniTrader is your friendly college-hood marketplace.'}
+        title="Profile | UniTrader"
+        description="UniTrader is your friendly college-hood marketplace."
       />
-      <div className={cn('section', styles.section)}>
-        <div className={cn('container', styles.container)}>
-          <div className={styles.profileContainer}>
-            <div className={styles.headerWrapper}>
-              <header></header>
-              <div className={styles.colsContainer}>
-                {/* Left Column */}
-                <div className={styles.leftCol}>
-                  <div className={styles.imgContainer}>
-                    <img src={avatar} alt={name} />
-                    <span className={styles.statusDot}></span>
-                  </div>
-                  <h2>{name}</h2>
-                  <p className={styles.title}>{title}</p>
-                  <p className={styles.email}>{email}</p>
 
-                  <ul className={styles.about}>
-                    {Object.entries(stats).map(([key, value]) => (
-                      <li key={key}>
-                        <span>{value.toLocaleString()}</span>
-                        {key.charAt(0).toUpperCase() + key.slice(1)}
+      {/* Inline Navbar */}
+      <header className="navbar">
+        <nav className="navLinks">
+          <ul>
+            <li>
+              <a href="/search?category=&color=Any+mode">Find Products</a>
+            </li>
+            <li>
+              <a href="/upload-details">Sell Items</a>
+            </li>
+            <li>
+              <a href="/chat">Chat</a>
+            </li>
+            <li>
+              <a href="/profile">Profile</a>
+            </li>
+          </ul>
+        </nav>
+      </header>
+
+      <div className="section">
+        <div className="container">
+          <div className="profileContainer">
+            <div className="headerWrapper">
+              {/* Banner content (if any) goes here */}
+            </div>
+            <div className="colsContainer">
+              {/* Left Column: Profile Info */}
+              <div className="leftCol">
+                <div className="imgContainer">
+                  <img
+                    src={profileData.avatar || '/default-avatar.png'}
+                    alt={profileData.name}
+                  />
+                  <span className="statusDot"></span>
+                </div>
+                <h2>{profileData.name}</h2>
+                <p className="title">{profileData.title}</p>
+                <p className="email">{profileData.email}</p>
+                {rollNumber && (
+                  <p className="rollNumber">Roll No: {rollNumber}</p>
+                )}
+              </div>
+              {/* Right Column: Purchases and Sold Tabs */}
+              <div className="rightCol">
+                <nav>
+                  <ul className="tabs">
+                    {['purchases', 'sold'].map(tab => (
+                      <li key={tab}>
+                        <button
+                          onClick={() => setActiveTab(tab)}
+                          className={activeTab === tab ? 'active' : ''}
+                        >
+                          {tab}
+                        </button>
                       </li>
                     ))}
                   </ul>
-
-                  <div className={styles.content}>
-                    <p>{bio}</p>
-                    <ul className={styles.socialIcons}>
-                      {socialLinks.map(link => (
-                        <li key={link.name}>
-                          <a href={link.url} aria-label={link.name}>
-                            <i className={link.icon}></i>
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-
-                {/* Right Column */}
-                <div className={styles.rightCol}>
-                  <nav>
-                    <ul className={styles.tabs}>
-                      {['purchases', 'sold'].map(tab => (
-                        <li key={tab}>
-                          <button
-                            onClick={() => setActiveTab(tab)}
-                            className={activeTab === tab ? styles.active : ''}
-                          >
-                            {tab}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </nav>
-
-                  {renderContent()}
-                </div>
+                </nav>
+                {renderContent()}
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      <footer className="pageFooter"></footer>
+
+      {/* 
+        ---------- 
+        CSS STYLES 
+        ---------- 
+      */}
+      <style jsx>{`
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
+        :global(body) {
+          margin: 0;
+          padding: 0;
+          background: #000;
+          color: #eee;
+          font-family: 'Montserrat', sans-serif;
+        }
+
+        /* Navbar */
+        .navbar {
+          position: fixed;
+          top: 0;
+          width: 100%;
+          background: linear-gradient(90deg, #222 0%, #111 100%);
+          padding: 10px 20px;
+          display: flex;
+          align-items: center;
+          justify-content: flex-start;
+          z-index: 1000;
+          box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Nav Links */
+        .navLinks ul {
+          display: flex;
+          align-items: center;
+          list-style: none;
+          margin: 0;
+          padding: 0;
+        }
+
+        .navLinks li {
+          padding-right: 10px;
+        }
+
+        .navLinks li + li::before {
+          content: '|';
+          color: #aaa;
+          margin: 0 10px 0 0;
+        }
+
+        .navLinks a {
+          color: #ccc;
+          text-decoration: none;
+          font-size: 16px;
+          font-weight: 500;
+          padding: 5px 0;
+          transition: color 0.3s ease;
+        }
+
+        .navLinks a:hover {
+          color: #fff;
+        }
+
+        /* Main Section */
+        .section {
+          margin-top: 60px;
+          padding: 0;
+          min-height: 100vh;
+          background: #000;
+        }
+        .container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 20px;
+        }
+
+        /* Profile Container */
+        .profileContainer {
+          position: relative;
+          margin-top: 40px;
+        }
+
+        /* Banner / Header */
+        .headerWrapper {
+          width: 100%;
+          height: 200px;
+          background: linear-gradient(135deg, #005bea, #00c6fb);
+          border-radius: 10px;
+          margin-bottom: 40px;
+        }
+
+        /* Columns */
+        .colsContainer {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 20px;
+          margin-top: -100px;
+        }
+
+        /* Left Column (Profile Info) */
+        .leftCol {
+          background: #111;
+          border-radius: 12px;
+          width: 300px;
+          min-width: 280px;
+          padding: 20px;
+          text-align: center;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        .imgContainer {
+          position: relative;
+          width: 120px;
+          height: 120px;
+          margin: 0 auto;
+          border-radius: 50%;
+          overflow: hidden;
+          background: #333;
+          border: 3px solid #007bff;
+        }
+        .imgContainer img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        .statusDot {
+          position: absolute;
+          bottom: 5px;
+          right: 5px;
+          width: 15px;
+          height: 15px;
+          background: #3ee37f;
+          border: 2px solid #111;
+          border-radius: 50%;
+        }
+        .leftCol h2 {
+          margin-top: 15px;
+          font-size: 1.6rem;
+          font-weight: 700;
+        }
+        .title,
+        .email {
+          font-size: 0.95rem;
+          color: #bbb;
+          margin-bottom: 5px;
+        }
+        .rollNumber {
+          font-size: 1rem;
+          color: #ffcc00;
+          margin: 10px 0;
+          font-weight: bold;
+        }
+
+        /* Right Column (Tabs + Content) */
+        .rightCol {
+          flex: 1;
+          background: #111;
+          border-radius: 12px;
+          padding: 20px;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        nav {
+          margin-bottom: 20px;
+        }
+        .tabs {
+          display: flex;
+          gap: 30px;
+          list-style: none;
+          padding: 0;
+          border-bottom: 1px solid #444;
+        }
+        .tabs li {
+          margin: 0;
+        }
+        .tabs li button {
+          background: none;
+          border: none;
+          color: #888;
+          font-size: 1rem;
+          cursor: pointer;
+          padding: 10px 0;
+          outline: none;
+          transition: color 0.3s ease;
+          position: relative;
+        }
+        .tabs li button.active {
+          color: #fff;
+          font-weight: 600;
+        }
+        .tabs li button.active::after {
+          content: '';
+          position: absolute;
+          width: 100%;
+          height: 2px;
+          background: #007bff;
+          left: 0;
+          bottom: -1px;
+        }
+        .tabs li button:hover {
+          color: #fff;
+        }
+
+        /* Purchases / Photos Grid */
+        .photos {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+          gap: 20px;
+        }
+        .photoItem {
+          background: #222;
+          border-radius: 8px;
+          overflow: hidden;
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .photoItem img {
+          width: 100%;
+          height: auto;
+          display: block;
+        }
+        .photoItem:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Sold / Galleries */
+        .galleries {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 20px;
+        }
+        .galleryItem {
+          position: relative;
+          background: #222;
+          border-radius: 8px;
+          overflow: hidden;
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .galleryItem img {
+          width: 100%;
+          height: 150px;
+          object-fit: cover;
+          display: block;
+        }
+        .galleryInfo {
+          padding: 10px;
+        }
+        .galleryInfo h3 {
+          margin: 0 0 5px;
+          font-size: 1.1rem;
+        }
+        .galleryInfo span {
+          font-size: 0.9rem;
+          color: #bbb;
+        }
+        .galleryItem:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Footer */
+        .pageFooter {
+          text-align: center;
+          padding: 15px 0;
+          background: #111;
+          color: #fff;
+          font-size: 0.9rem;
+          margin-top: 40px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+          .colsContainer {
+            flex-direction: column;
+            margin-top: 0;
+          }
+          .leftCol {
+            margin-bottom: 20px;
+          }
+          .navbar {
+            padding: 10px;
+          }
+          .navLinks a {
+            margin: 0 10px;
+          }
+        }
+      `}</style>
     </Layout>
   )
 }
@@ -190,7 +476,7 @@ const ProfilePage = ({
 export default ProfilePage
 
 export async function getServerSideProps() {
-  const navigationItems = (await getAllDataByType('navigation')) || []
+  const navigationItems = [] // Replace with navigation data if available
   return {
     props: { navigationItems },
   }
