@@ -7,7 +7,18 @@ const cosmic = createBucketClient({
 })
 
 export default async function createHandler(
-  { body: { title, description, price, count, color, image, categories } },
+  {
+    body: {
+      title,
+      description,
+      price,
+      count,
+      color,
+      image,
+      categories,
+      seller,
+    },
+  },
   res
 ) {
   const metadata = {
@@ -17,6 +28,7 @@ export default async function createHandler(
     color,
     image,
     categories,
+    seller, // New field: roll number
   }
   try {
     const data = await cosmic.objects.insertOne({

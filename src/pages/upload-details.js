@@ -24,17 +24,20 @@ const Upload = ({ navigationItems, categoriesType }) => {
   const { categories, navigation, cosmicUser } = useStateContext()
   const { push } = useRouter()
 
+  // 1) Extend your state to include 'seller'
   const [color, setColor] = useState(OPTIONS[1])
   const [uploadMedia, setUploadMedia] = useState('')
   const [uploadFile, setUploadFile] = useState('')
   const [chooseCategory, setChooseCategory] = useState('')
   const [fillFiledMessage, setFillFiledMessage] = useState(false)
-  const [{ title, count, description, price }, setFields] = useState(
-    () => createFields
+  const [{ title, count, description, price, seller }, setFields] = useState(
+    () => ({
+      ...createFields,
+      seller: '', // new field
+    })
   )
 
   const [visibleAuthModal, setVisibleAuthModal] = useState(false)
-
   const [visiblePreview, setVisiblePreview] = useState(false)
 
   useEffect(() => {
@@ -85,6 +88,7 @@ const Upload = ({ navigationItems, categoriesType }) => {
       : handleOAuth()
   }
 
+  // 2) Update handleChange to manage 'seller' as well
   const handleChange = ({ target: { name, value } }) =>
     setFields(prevFields => ({
       ...prevFields,
@@ -95,21 +99,31 @@ const Upload = ({ navigationItems, categoriesType }) => {
     setChooseCategory(index)
   }, [])
 
+  // 3) Add 'seller' to the check in previewForm if you want it required
   const previewForm = useCallback(() => {
-    if (title && count && price && uploadMedia) {
+    if (title && count && price && seller && uploadMedia) {
       fillFiledMessage && setFillFiledMessage(false)
       setVisiblePreview(true)
     } else {
       setFillFiledMessage(true)
     }
-  }, [count, fillFiledMessage, price, title, uploadMedia])
+  }, [title, count, price, seller, uploadMedia, fillFiledMessage])
 
+  // 4) Include 'seller' in the submitForm body
   const submitForm = useCallback(
     async e => {
       e.preventDefault()
       !cosmicUser.hasOwnProperty('id') && handleOAuth()
 
-      if (cosmicUser && title && color && count && price && uploadMedia) {
+      if (
+        cosmicUser &&
+        title &&
+        color &&
+        count &&
+        price &&
+        seller &&
+        uploadMedia
+      ) {
         fillFiledMessage && setFillFiledMessage(false)
 
         const response = await fetch('/api/create', {
@@ -126,7 +140,8 @@ const Upload = ({ navigationItems, categoriesType }) => {
             color,
             categories: [chooseCategory],
             image: uploadMedia['name'],
-            auction: false, 
+            auction: false,
+            seller, // new field sent to the backend
           }),
         })
 
@@ -156,6 +171,7 @@ const Upload = ({ navigationItems, categoriesType }) => {
       handleOAuth,
       price,
       push,
+      seller,
       title,
       uploadMedia,
     ]
@@ -165,17 +181,13 @@ const Upload = ({ navigationItems, categoriesType }) => {
     <Layout navigationPaths={navigationItems[0]?.metadata || navigation}>
       <PageMeta
         title={'Create Item | UniTrader'}
-        description={
-          'UniTrader is your friendly college-hood marketplace.'
-        }
+        description={'UniTrader is your friendly college-hood marketplace.'}
       />
       <div className={cn('section', styles.section)}>
         <div className={cn('container', styles.container)}>
           <div className={styles.wrapper}>
             <div className={styles.head}>
-              <div className={cn('h2', styles.title)}>
-                Create an item
-              </div>
+              <div className={cn('h2', styles.title)}>Create an item</div>
             </div>
             <form className={styles.form} action="" onSubmit={submitForm}>
               <div className={styles.list}>
@@ -193,9 +205,7 @@ const Upload = ({ navigationItems, categoriesType }) => {
                     <div className={styles.icon}>
                       <Icon name="upload-file" size="24" />
                     </div>
-                    <div className={styles.format}>
-                      Upload images or videos
-                    </div>
+                    <div className={styles.format}>Upload images or videos</div>
                   </div>
                 </div>
                 <div className={styles.item}>
@@ -221,6 +231,19 @@ const Upload = ({ navigationItems, categoriesType }) => {
                       value={description}
                       required
                     />
+
+                    {/* 5) New Seller (Roll Number) Field */}
+                    <TextInput
+                      className={styles.field}
+                      label="Seller Roll Number"
+                      name="seller"
+                      type="text"
+                      placeholder="e.g. 2023BCY0002"
+                      onChange={handleChange}
+                      value={seller}
+                      required
+                    />
+
                     <div className={styles.row}>
                       <div className={styles.col}>
                         <div className={styles.field}>
@@ -263,7 +286,7 @@ const Upload = ({ navigationItems, categoriesType }) => {
               </div>
               <div className={styles.options}>
                 <div className={styles.category}>Choose category</div>
-                <div className={styles.text}>Choose an exiting category</div>
+                <div className={styles.text}>Choose an existing category</div>
                 <Cards
                   className={styles.cards}
                   category={chooseCategory}
@@ -298,7 +321,7 @@ const Upload = ({ navigationItems, categoriesType }) => {
           </div>
           <Preview
             className={cn(styles.preview, { [styles.active]: visiblePreview })}
-            info={{ title, color, count, description, price }}
+            info={{ title, color, count, description, price, seller }}
             image={uploadMedia?.['imgix_url']}
             onClose={() => setVisiblePreview(false)}
           />

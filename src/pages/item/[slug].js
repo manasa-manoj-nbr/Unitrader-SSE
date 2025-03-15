@@ -22,7 +22,6 @@ import styles from '../../styles/pages/Item.module.sass'
 
 const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
   const { onAdd, cartItems, cosmicUser } = useStateContext()
-
   const [activeIndex, setActiveIndex] = useState(0)
   const [visibleAuthModal, setVisibleAuthModal] = useState(false)
   const [price, setPrice] = useState(0)
@@ -41,7 +40,7 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
       `/chat?name=${itemInfo[0]?.title}&pic=${itemInfo[0]?.metadata?.image?.imgix_url}`
     )
   }
-
+  console.log("hello");
   const handleAddToCart = () => {
     cosmicUser?.hasOwnProperty('id') ? handleCheckout() : handleOAuth()
   }
@@ -49,12 +48,11 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
   const handleOAuth = useCallback(
     async user => {
       !cosmicUser.hasOwnProperty('id') && setVisibleAuthModal(true)
-
       if (!user && !user?.hasOwnProperty('id')) return
     },
     [cosmicUser]
   )
-
+  
   const handleCheckout = async () => {
     let oldCart = await onAdd(itemInfo[0], option)
     if (itemInfo[0]?.metadata?.color.toLowerCase() === 'auction') {
@@ -88,7 +86,8 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
   }
 
   const PriceDisplay = () => {
-    const isAuction = itemInfo[0]?.metadata?.color.toLowerCase() === 'auction'
+    const colorValue = (itemInfo[0]?.metadata?.color || '').toLowerCase()
+    const isAuction = colorValue === 'auction'
 
     return (
       <span className={cn(styles.price, 'flex items-center gap-2')}>
@@ -97,14 +96,14 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
           <>
             <style>
               {`
-            @keyframes fadeInOut {
-              0%, 100% { opacity: 1; }
-              50% { opacity: 0; }
-            }
-            .fade {
-              animation: fadeInOut 1s infinite;
-            }
-          `}
+                @keyframes fadeInOut {
+                  0%, 100% { opacity: 1; }
+                  50% { opacity: 0; }
+                }
+                .fade {
+                  animation: fadeInOut 1s infinite;
+                }
+              `}
             </style>
             <span className="fade" style={{ color: 'red', marginLeft: '4px' }}>
               LIVE
@@ -126,7 +125,18 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
                   {itemInfo[0]?.metadata?.color}
                 </div>
               </div>
-              <div className={styles.image}>
+              {/* onClick now checks for image details */}
+              <div
+                className={styles.image}
+                onClick={() => {
+                  const imageDetails = itemInfo[0]?.metadata?.image
+                  if (imageDetails) {
+                    console.log('Image details:', imageDetails)
+                  } else {
+                    console.log('Unable to fetch')
+                  }
+                }}
+              >
                 <Image
                   size={{ width: '100%', height: '100%' }}
                   srcSet={`${itemInfo[0]?.metadata?.image?.imgix_url}`}
@@ -143,20 +153,13 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
               style={{ display: 'flex', justifyContent: 'space-evenly' }}
             >
               <button
-                className={cn(
-                  // styles.active,
-                  styles.link
-                )}
+                className={cn(styles.link)}
                 onClick={() => chatWithBuyer()}
               >
                 Chat with Buyer
               </button>
-
               <button
-                className={cn(
-                  // styles.active,
-                  styles.link
-                )}
+                className={cn(styles.link)}
                 onClick={() => handleAddToCart()}
               >
                 View Discussion Forum
@@ -164,18 +167,16 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
             </div>
             <h1 className={cn('h3', styles.title)}>{itemInfo[0]?.title}</h1>
             <div className={styles.cost}>
-              <PriceDisplay price={itemInfo[0]?.metadata?.price} />
+              <PriceDisplay />
               <div className={styles.counter}>
                 {itemInfo[0]?.metadata?.count > 0
                   ? `${itemInfo[0]?.metadata?.count} in stock`
                   : 'Not Available'}
               </div>
             </div>
-
             <div className={styles.info}>
               {itemInfo[0]?.metadata?.description}
             </div>
-
             <div className={styles.actions}>
               <div className={styles.dropdown}>
                 <Dropdown
@@ -186,7 +187,8 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
                 />
               </div>
               <div className={styles.btns}>
-                {itemInfo[0]?.metadata?.color.toLowerCase() === 'auction' && (
+                {(itemInfo[0]?.metadata?.color || '').toLowerCase() ===
+                  'auction' && (
                   <div className={styles.col}>
                     <TextInput
                       className={styles.field}
@@ -198,30 +200,28 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
                         setPrice(e.target.value)
                         console.log(option)
                       }}
-                      // value={price}
                       required
                     />
                   </div>
                 )}
-
                 <button
                   className={cn('button', styles.button)}
                   onClick={
                     itemInfo[0]?.metadata?.price < price ||
-                    itemInfo[0]?.metadata?.color.toLowerCase() !== 'auction'
+                    (itemInfo[0]?.metadata?.color || '').toLowerCase() !==
+                      'auction'
                       ? handleAddToCart
                       : null
                   }
                 >
-                  {itemInfo[0]?.metadata?.color.toLowerCase() === 'auction'
+                  {(itemInfo[0]?.metadata?.color || '').toLowerCase() ===
+                  'auction'
                     ? 'Place Bid'
                     : 'Buy Now'}
                 </button>
               </div>
             </div>
-
             <br />
-
             <span
               style={{ color: 'red', cursor: 'pointer', textAlign: 'right' }}
               onClick={() => setShowReportModal(true)}
@@ -230,11 +230,6 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
             </span>
           </div>
         </div>
-        {/* <HotBid classSection="section" info={categoriesGroup['groups'][0]} /> */}
-        {/* <Discover
-          info={categoriesGroup['groups']}
-          type={categoriesGroup['type']}
-        /> */}
       </div>
       <Modal
         visible={visibleAuthModal}
@@ -246,8 +241,6 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
           handleClose={() => setVisibleAuthModal(false)}
         />
       </Modal>
-
-      {/* Report Item Modal */}
       <Modal
         visible={showReportModal}
         onClose={() => setShowReportModal(false)}
@@ -277,23 +270,18 @@ export default Item
 
 export async function getServerSideProps({ params }) {
   const itemInfo = await getDataBySlug(params.slug)
-
   const navigationItems = (await getAllDataByType('navigation')) || []
   const categoryTypes = (await getAllDataByType('categories')) || []
   const categoriesData = await Promise.all(
-    categoryTypes?.map(category => {
-      return getDataByCategory(category?.id)
-    })
+    categoryTypes?.map(category => getDataByCategory(category?.id))
   )
-
-  const categoriesGroups = categoryTypes?.map(({ id }, index) => {
-    return { [id]: categoriesData[index] }
-  })
-
-  const categoriesType = categoryTypes?.reduce((arr, { title, id }) => {
-    return { ...arr, [id]: title }
-  }, {})
-
+  const categoriesGroups = categoryTypes?.map(({ id }, index) => ({
+    [id]: categoriesData[index],
+  }))
+  const categoriesType = categoryTypes?.reduce(
+    (arr, { title, id }) => ({ ...arr, [id]: title }),
+    {}
+  )
   const categoriesGroup = { groups: categoriesGroups, type: categoriesType }
 
   if (!itemInfo) {

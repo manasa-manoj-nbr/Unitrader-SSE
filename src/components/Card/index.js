@@ -9,30 +9,35 @@ const Card = ({ className, item }) => {
   const [visible, setVisible] = useState(false);
 
   const PriceDisplay = () => {
-    const isAuction = item?.metadata?.color.toLowerCase() === 'auction';
-    
+    // Use a fallback value ('') if color is null or undefined
+    const color = item?.metadata?.color || ''
+    const isAuction = color.toLowerCase() === 'auction'
+
     return (
-      <span className={cn(styles.price, "flex items-center gap-2")}>
-      <span>₹ {item?.metadata?.price}</span>
-      {isAuction && (
-        <>
-        <style>
-          {`
-            @keyframes fadeInOut {
-              0%, 100% { opacity: 1; }
-              50% { opacity: 0; }
-            }
-            .fade {
-              animation: fadeInOut 1s infinite;
-            }
-          `}
-        </style>
-        <span className="fade" style={{ color: "red", marginLeft: "4px" }}>LIVE</span>
-        </>
-      )}
+      <span className={cn(styles.price, 'flex items-center gap-2')}>
+        <span>₹ {item?.metadata?.price}</span>
+        {isAuction && (
+          <>
+            <style>
+              {`
+              @keyframes fadeInOut {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0; }
+              }
+              .fade {
+                animation: fadeInOut 1s infinite;
+              }
+            `}
+            </style>
+            <span className="fade" style={{ color: 'red', marginLeft: '4px' }}>
+              LIVE
+            </span>
+          </>
+        )}
       </span>
-    );
-  };
+    )
+  }
+
 
   return (
     <div className={cn(styles.card, className)} aria-hidden="true">

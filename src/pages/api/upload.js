@@ -17,15 +17,19 @@ export const config = {
 export default async function uploadHandler(req, res) {
   const form = formidable({})
 
-  try {
-    form.parse(req, async (err, fields, files) => {
-      if (err) return reject(err)
+  form.parse(req, async (err, fields, files) => {
+    if (err) {
+      console.error('Error parsing the form:', err)
+      return res.status(500).json({ error: 'Error parsing the form' })
+    }
+    try {
       const cosmicRes = await saveFile(files.file[0])
-      res.status(200).json(cosmicRes)
-    })
-  } catch (error) {
-    res.status(404).json(error.message)
-  }
+      return res.status(200).json(cosmicRes)
+    } catch (error) {
+      console.error('Error saving file:', error)
+      return res.status(500).json({ error: error.message })
+    }
+  })
 }
 
 const saveFile = async file => {
@@ -36,13 +40,12 @@ const saveFile = async file => {
   }
   try {
     // Add media to Cosmic Bucket
-    const cosmic_res = await cosmic.media.insertOne({
-      media,
-    })
-    await fs.unlinkSync(file?.filepath)
-    return await cosmic.media.insertOne({ media })
+    const cosmicRes = await cosmic.media.insertOne({ media })
+    // Delete the temporary file after uploading
+    fs.unlinkSync(file?.filepath)
+    return cosmicRes
   } catch (error) {
-    console.log(error)
-    return error
+    console.error('Cosmic insert error:', error)
+    throw error
   }
 }
