@@ -6,44 +6,59 @@ import chooseBySlug from '../utils/chooseBySlug'
 import { useStateContext } from '../utils/context/StateContext'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../lib/firebase'
+import {
+  getDataByCategory,
+  getAllDataByType,
+  getDataByRoll,
+} from '../lib/cosmic'
 
 const ProfilePage = ({ navigationItems }) => {
   const { cosmicUser } = useStateContext()
   const [profileData, setProfileData] = useState(null)
   const [activeTab, setActiveTab] = useState('purchases')
-  const infoAbout = chooseBySlug(null, 'profile') // Adjust landing if needed
+  const infoAbout = chooseBySlug(null, 'profile')
 
   // Helper: Compute roll number from email if domain is "iiitkottayam.ac.in"
   const computeRollNumber = email => {
-    if (!email.endsWith('@iiitkottayam.ac.in')) return null
+    if (!email?.endsWith('@iiitkottayam.ac.in')) return null
     const localPart = email.split('@')[0] // e.g. "pavan23bcy2"
     const pattern = /^([a-z]+)(\d{2})([a-z]+)(\d+)$/i
     const match = localPart.match(pattern)
     if (!match) return null
     const [, , year, deptCode, roll] = match
     const paddedRoll = roll.padStart(4, '0')
-    return `20${year}${deptCode}${paddedRoll}`
+    return `20${year}${deptCode}${paddedRoll}` // e.g. "2023BCY0002"
   }
 
-  // Fetch logged-in user's Firestore document
+  // Fetch Firestore user data and then fetch sold items from Cosmic
   useEffect(() => {
     const fetchUserData = async () => {
       if (cosmicUser && cosmicUser.id) {
         try {
+          // Fetch user document from Firestore
           const userDocRef = doc(db, 'users', cosmicUser.id)
           const userDocSnap = await getDoc(userDocRef)
+          let firestoreData = {}
           if (userDocSnap.exists()) {
-            const firestoreData = userDocSnap.data()
+            firestoreData = userDocSnap.data()
             console.log('Fetched Firestore user data:', firestoreData)
-            setProfileData(firestoreData)
+            console.log("User's email from Firestore:", firestoreData.email)
           } else {
-            console.log(
-              'No user data found in Firestore for UID:',
-              cosmicUser.id
-            )
+            console.log('No user data found for UID:', cosmicUser.id)
           }
+          // Compute roll number from email
+          const rollNumber = computeRollNumber(firestoreData.email)
+          let soldItems = []
+          if (rollNumber) {
+            console.log('Fetching sold items for roll number:', rollNumber)
+            // Use getDataByRoll to fetch products where metadata.seller equals the rollNumber
+            soldItems = await getDataByRoll(rollNumber)
+            console.log('Fetched sold items from Cosmic:', soldItems)
+          }
+          // Store combined profile data
+          setProfileData({ ...firestoreData, sold: soldItems })
         } catch (error) {
-          console.error('Error fetching user data:', error)
+          console.error('Error fetching user data or cosmic items:', error)
         }
       }
     }
@@ -71,6 +86,23 @@ const ProfilePage = ({ navigationItems }) => {
 
   const rollNumber = computeRollNumber(profileData.email)
 
+  // When "sold" tab is clicked, re-fetch sold items and print them in the console.
+  const handleSoldClick = async () => {
+    if (!rollNumber) {
+      console.log('Roll number not available.')
+      return
+    }
+    try {
+      const soldItems = await getDataByRoll(rollNumber)
+      console.log('Sold items for roll number', rollNumber, ':', soldItems)
+      // Optionally update state to refresh UI:
+      setProfileData(prev => ({ ...prev, sold: soldItems }))
+    } catch (error) {
+      console.error('Error fetching sold items:', error)
+    }
+  }
+
+  // Render tab content based on activeTab
   const renderContent = () => {
     switch (activeTab) {
       case 'purchases':
@@ -91,12 +123,16 @@ const ProfilePage = ({ navigationItems }) => {
         return (
           <div className="galleries">
             {profileData.sold && profileData.sold.length > 0 ? (
-              profileData.sold.map((gallery, index) => (
+              profileData.sold.map((item, index) => (
                 <div key={index} className="galleryItem">
-                  <img src={gallery.src} alt={gallery.alt} />
+                  <img
+                    src={
+                      item.metadata?.image?.imgix_url || '/default-avatar.png'
+                    }
+                    alt={item.title}
+                  />
                   <div className="galleryInfo">
-                    <h3>{gallery.title}</h3>
-                    <span>{gallery.count} Photos</span>
+                    <h3>{item.title}</h3>
                   </div>
                 </div>
               ))
@@ -167,7 +203,10 @@ const ProfilePage = ({ navigationItems }) => {
                     {['purchases', 'sold'].map(tab => (
                       <li key={tab}>
                         <button
-                          onClick={() => setActiveTab(tab)}
+                          onClick={() => {
+                            setActiveTab(tab)
+                            if (tab === 'sold') handleSoldClick()
+                          }}
                           className={activeTab === tab ? 'active' : ''}
                         >
                           {tab}
@@ -185,11 +224,6 @@ const ProfilePage = ({ navigationItems }) => {
 
       <footer className="pageFooter"></footer>
 
-      {/* 
-        ---------- 
-        CSS STYLES 
-        ---------- 
-      */}
       <style jsx>{`
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
 
@@ -214,8 +248,6 @@ const ProfilePage = ({ navigationItems }) => {
           z-index: 1000;
           box-shadow: 0 2px 5px rgba(255, 255, 255, 0.1);
         }
-
-        /* Nav Links */
         .navLinks ul {
           display: flex;
           align-items: center;
@@ -223,17 +255,14 @@ const ProfilePage = ({ navigationItems }) => {
           margin: 0;
           padding: 0;
         }
-
         .navLinks li {
           padding-right: 10px;
         }
-
         .navLinks li + li::before {
           content: '|';
           color: #aaa;
           margin: 0 10px 0 0;
         }
-
         .navLinks a {
           color: #ccc;
           text-decoration: none;
@@ -242,11 +271,9 @@ const ProfilePage = ({ navigationItems }) => {
           padding: 5px 0;
           transition: color 0.3s ease;
         }
-
         .navLinks a:hover {
           color: #fff;
         }
-
         /* Main Section */
         .section {
           margin-top: 60px;
@@ -259,13 +286,11 @@ const ProfilePage = ({ navigationItems }) => {
           margin: 0 auto;
           padding: 0 20px;
         }
-
         /* Profile Container */
         .profileContainer {
           position: relative;
           margin-top: 40px;
         }
-
         /* Banner / Header */
         .headerWrapper {
           width: 100%;
@@ -274,7 +299,6 @@ const ProfilePage = ({ navigationItems }) => {
           border-radius: 10px;
           margin-bottom: 40px;
         }
-
         /* Columns */
         .colsContainer {
           display: flex;
@@ -282,7 +306,6 @@ const ProfilePage = ({ navigationItems }) => {
           gap: 20px;
           margin-top: -100px;
         }
-
         /* Left Column (Profile Info) */
         .leftCol {
           background: #111;
@@ -335,7 +358,6 @@ const ProfilePage = ({ navigationItems }) => {
           margin: 10px 0;
           font-weight: bold;
         }
-
         /* Right Column (Tabs + Content) */
         .rightCol {
           flex: 1;
@@ -384,7 +406,6 @@ const ProfilePage = ({ navigationItems }) => {
         .tabs li button:hover {
           color: #fff;
         }
-
         /* Purchases / Photos Grid */
         .photos {
           display: grid;
@@ -406,7 +427,6 @@ const ProfilePage = ({ navigationItems }) => {
           transform: translateY(-5px);
           box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
         }
-
         /* Sold / Galleries */
         .galleries {
           display: grid;
@@ -433,15 +453,6 @@ const ProfilePage = ({ navigationItems }) => {
           margin: 0 0 5px;
           font-size: 1.1rem;
         }
-        .galleryInfo span {
-          font-size: 0.9rem;
-          color: #bbb;
-        }
-        .galleryItem:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
-        }
-
         /* Footer */
         .pageFooter {
           text-align: center;
@@ -451,8 +462,6 @@ const ProfilePage = ({ navigationItems }) => {
           font-size: 0.9rem;
           margin-top: 40px;
         }
-
-        /* Responsive adjustments */
         @media (max-width: 768px) {
           .colsContainer {
             flex-direction: column;

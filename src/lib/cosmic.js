@@ -21,11 +21,10 @@ export async function getDataByCategory(id) {
       .depth(1)
     return data.objects
   } catch (error) {
-    // Don't throw if an slug doesn't exist
     if (is404(error)) return
-    // throw error
   }
 }
+
 
 export async function getAllDataByType(dataType = 'categories') {
   try {
@@ -33,6 +32,7 @@ export async function getAllDataByType(dataType = 'categories') {
       .find({ type: dataType })
       .props('title,slug,id,metadata')
       .depth(1)
+      console.log(data);
     return data.objects
   } catch (error) {
     // Don't throw if an slug doesn't exist
@@ -50,9 +50,29 @@ export async function getDataBySlug(slug) {
       })
       .props('title,slug,id,metadata,created_at')
       .depth(1)
+     // console.log(data.objects[0].metadata.seller);
+      
     return data.objects
   } catch (error) {
     // Don't throw if an slug doesn't exist
+    if (is404(error)) return
+    throw error
+  }
+}
+
+export async function getDataByRoll(roll) {
+  const query = {
+    // 'metadata.seller': roll,
+    type: 'products',
+  }
+  try {
+    const data = await cosmic.objects
+      .find(query)
+      .props('title,metadata.image')
+      .depth(1)
+    return data.objects
+  } catch (error) {
+    console.log("custom error" , error);
     if (is404(error)) return
     throw error
   }

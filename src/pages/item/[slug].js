@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/router'
 import cn from 'classnames'
 import toast from 'react-hot-toast'
@@ -17,17 +17,55 @@ import {
   getDataByCategory,
 } from '../../lib/cosmic'
 import getStripe from '../../lib/getStripe'
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from '../../lib/firebase'
 
 import styles from '../../styles/pages/Item.module.sass'
 
 const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
   const { onAdd, cartItems, cosmicUser } = useStateContext()
+  const router = useRouter()
+  const { push } = router
+
+  // Retrieve receiver identifier from query (e.g. a roll number or name)
+  const { name: rawItemName } = router.query
+
+  // Once the router is ready, print sender's roll number, receiver's roll number,
+  // and fetch the logged-in user's email from Firestore.
+  useEffect(() => {
+    if (router.isReady) {
+      const senderRoll = cosmicUser?.rollNumber || '2023BCY0001'
+      console.log('Sender Roll Number:', senderRoll)
+      console.log('Receiver Roll Number:', rawItemName)
+
+      // Fetch the logged-in user's email from Firestore using cosmicUser.uid
+      if (cosmicUser?.uid) {
+        const userRef = doc(db, 'users', cosmicUser.uid)
+        getDoc(userRef)
+          .then(docSnap => {
+            if (docSnap.exists()) {
+              const userData = docSnap.data()
+              console.log(
+                "Logged-in user's email from Firestore:",
+                userData.email
+              )
+            } else {
+              console.log('No user document found in Firestore for this uid.')
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching user doc:', error)
+          })
+      } else {
+        console.log('No cosmicUser.uid available to fetch user email.')
+      }
+    }
+  }, [router.isReady, cosmicUser, rawItemName])
+
   const [activeIndex, setActiveIndex] = useState(0)
   const [visibleAuthModal, setVisibleAuthModal] = useState(false)
   const [price, setPrice] = useState(0)
-  const [showReportModal, setShowReportModal] = useState(false) // State for the Report Modal
-  const { push } = useRouter()
-
+  const [showReportModal, setShowReportModal] = useState(false)
   const counts = itemInfo?.[0]?.metadata?.count
     ? Array(itemInfo[0]?.metadata?.count)
         .fill(1)
@@ -40,22 +78,24 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
       `/chat?name=${itemInfo[0]?.title}&pic=${itemInfo[0]?.metadata?.image?.imgix_url}`
     )
   }
-  console.log("hello");
+  console.log('hello')
   const handleAddToCart = () => {
     cosmicUser?.hasOwnProperty('id') ? handleCheckout() : handleOAuth()
   }
 
   const handleOAuth = useCallback(
     async user => {
-      !cosmicUser.hasOwnProperty('id') && setVisibleAuthModal(true)
-      if (!user && !user?.hasOwnProperty('id')) return
+      if (!cosmicUser?.hasOwnProperty('id')) {
+        setVisibleAuthModal(true)
+      }
+      if (!user || !user?.hasOwnProperty('id')) return
     },
     [cosmicUser]
   )
-  
+
   const handleCheckout = async () => {
     let oldCart = await onAdd(itemInfo[0], option)
-    if (itemInfo[0]?.metadata?.color.toLowerCase() === 'auction') {
+    if ((itemInfo[0]?.metadata?.color || '').toLowerCase() === 'auction') {
       oldCart[0].metadata.price = price
     }
     const addCart = oldCart
@@ -63,24 +103,17 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
 
     if (addCart?.length) {
       const stripe = await getStripe()
-
       const response = await fetch('/api/stripe', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(addCart),
       })
 
       if (response.statusCode === 500) return
 
       const data = await response.json()
-      toast.loading('Redirecting...', {
-        position: 'bottom-right',
-      })
-
+      toast.loading('Redirecting...', { position: 'bottom-right' })
       console.log(data)
-
       stripe.redirectToCheckout({ sessionId: data.id })
     }
   }
@@ -88,7 +121,6 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
   const PriceDisplay = () => {
     const colorValue = (itemInfo[0]?.metadata?.color || '').toLowerCase()
     const isAuction = colorValue === 'auction'
-
     return (
       <span className={cn(styles.price, 'flex items-center gap-2')}>
         <span>₹ {itemInfo[0]?.metadata?.price}</span>
@@ -285,12 +317,8 @@ export async function getServerSideProps({ params }) {
   const categoriesGroup = { groups: categoriesGroups, type: categoriesType }
 
   if (!itemInfo) {
-    return {
-      notFound: true,
-    }
+    return { notFound: true }
   }
 
-  return {
-    props: { itemInfo, navigationItems, categoriesGroup },
-  }
+  return { props: { itemInfo, navigationItems, categoriesGroup } }
 }
