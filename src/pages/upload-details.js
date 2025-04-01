@@ -123,6 +123,7 @@ const Upload = ({ navigationItems, categoriesType }) => {
 
   // Check if all required fields are filled to show the preview
   const previewForm = useCallback(() => {
+    
     if (title && count && price && seller && uploadMedia) {
       if (fillFiledMessage) setFillFiledMessage(false)
       setVisiblePreview(true)
@@ -152,6 +153,14 @@ const Upload = ({ navigationItems, categoriesType }) => {
       if (!cosmicUser.hasOwnProperty('id')) {
         handleOAuth()
       }
+      const user = localStorage.getItem('uNFT-user')
+        if (user) {
+          const cosmicUser = JSON.parse(user)
+          if (cosmicUser?.hasOwnProperty('roll_number')) {
+            seller = cosmicUser?.roll_number
+            console.log('Seller Roll Number:', seller)
+          }
+        }
 
       if (
         cosmicUser &&
@@ -271,16 +280,17 @@ const Upload = ({ navigationItems, categoriesType }) => {
                     />
 
                     {/* Seller (Roll Number) Field */}
-                    <TextInput
+                    {/* <TextInput
                       className={styles.field}
                       label="Seller Roll Number"
                       name="seller"
                       type="text"
                       placeholder="e.g. 2023BCY0002"
                       onChange={handleChange}
-                      value={seller}
+                      value={localStorage.getItem('uNFT-user')?.roll_number || ''}
+                      readOnly 
                       required
-                    />
+                    /> */}
 
                     <div className={styles.row}>
                       <div className={styles.col}>

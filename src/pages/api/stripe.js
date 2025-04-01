@@ -24,9 +24,9 @@ export default async function handler(req, res) {
                 name: item.title,
                 images: [img],
               },
-              unit_amount: item.metadata.price * 100,
+              unit_amount: Math.max(item.metadata.price * 100, 45),
             },
-            adjustable_quantity: { 
+            adjustable_quantity: {
               enabled: true,
               minimum: 1,
             },
@@ -36,6 +36,7 @@ export default async function handler(req, res) {
         success_url: `${req.headers.origin}/qr_code?item_slug=${req.body.map(item =>item.title)}&image=${req.body.map(item =>item.metadata.image.imgix_url)}`,
         cancel_url: `${req.headers.origin}/`,
       }
+      console.log('params', params) 
 
       // Create Checkout Sessions from body params.
       const session = await stripe.checkout.sessions.create(params)

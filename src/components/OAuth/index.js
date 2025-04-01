@@ -68,13 +68,23 @@ const OAuth = ({ className, handleClose, handleOAuth, disable }) => {
         avatar_url: user.photoURL || '',
         email: user.email,
       }
-
+        const computeRollNumber = email => {
+          if (!email?.endsWith('@iiitkottayam.ac.in')) return null
+          const localPart = email.split('@')[0] // e.g. "pavan23bcy2"
+          const pattern = /^([a-z]+)(\d{2})([a-z]+)(\d+)$/i
+          const match = localPart.match(pattern)
+          if (!match) return null
+          const [, , year, deptCode, roll] = match
+          const paddedRoll = roll.padStart(4, '0')
+          return `20${year}${deptCode}${paddedRoll}` // e.g. "2023BCY0002"
+        }
       // Update global state and token
       setCosmicUser(cosmicUser)
       setToken({
         id: cosmicUser.id,
         first_name: cosmicUser.first_name,
         avatar_url: cosmicUser.avatar_url,
+        roll_number: computeRollNumber(user.email),
       })
 
       console.log('Successfully signed in!')
