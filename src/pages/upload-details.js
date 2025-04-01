@@ -16,7 +16,6 @@ import { getAllDataByType } from '../lib/cosmic'
 import { OPTIONS } from '../utils/constants/appConstants'
 import createFields from '../utils/constants/createFields'
 import { getToken } from '../utils/token'
-
 import styles from '../styles/pages/UploadDetails.module.sass'
 import { PageMeta } from '../components/Meta'
 
@@ -24,18 +23,23 @@ const Upload = ({ navigationItems, categoriesType }) => {
   const { categories, navigation, cosmicUser } = useStateContext()
   const { push } = useRouter()
 
-  // 1) Extend your state to include 'seller'
   const [color, setColor] = useState(OPTIONS[1])
   const [uploadMedia, setUploadMedia] = useState('')
   const [uploadFile, setUploadFile] = useState('')
   const [chooseCategory, setChooseCategory] = useState('')
   const [fillFiledMessage, setFillFiledMessage] = useState(false)
+
+  // We keep title and description as strings, but count and price will be numbers
   const [{ title, count, description, price, seller }, setFields] = useState(
     () => ({
       ...createFields,
-      seller: '', // new field
+      seller: '',
     })
   )
+
+  // New state to track count and price validation errors
+  const [countError, setCountError] = useState('')
+  const [priceError, setPriceError] = useState('')
 
   const [visibleAuthModal, setVisibleAuthModal] = useState(false)
   const [visiblePreview, setVisiblePreview] = useState(false)
@@ -57,9 +61,9 @@ const Upload = ({ navigationItems, categoriesType }) => {
     }
   }, [cosmicUser])
 
-  const handleUploadFile = async uploadFile => {
+  const handleUploadFile = async file => {
     const formData = new FormData()
-    formData.append('file', uploadFile)
+    formData.append('file', file)
 
     const uploadResult = await fetch('/api/upload', {
       method: 'POST',
@@ -67,53 +71,87 @@ const Upload = ({ navigationItems, categoriesType }) => {
     })
 
     const mediaData = await uploadResult.json()
-    await setUploadMedia(mediaData?.['media'])
+    setUploadMedia(mediaData?.['media'])
   }
 
   const handleOAuth = useCallback(
     async user => {
-      !cosmicUser.hasOwnProperty('id') && setVisibleAuthModal(true)
-
-      if (!user && !user?.hasOwnProperty('id')) return
-      user && uploadFile && (await handleUploadFile(uploadFile))
+      if (!cosmicUser.hasOwnProperty('id')) {
+        setVisibleAuthModal(true)
+      }
+      if (!user || !user.hasOwnProperty('id')) return
+      if (user && uploadFile) await handleUploadFile(uploadFile)
     },
     [cosmicUser, uploadFile]
   )
 
   const handleUpload = async e => {
-    setUploadFile(e.target.files[0])
-
-    cosmicUser?.hasOwnProperty('id')
-      ? handleUploadFile(e.target.files[0])
-      : handleOAuth()
+    const file = e.target.files[0]
+    setUploadFile(file)
+    cosmicUser?.hasOwnProperty('id') ? handleUploadFile(file) : handleOAuth()
   }
 
-  // 2) Update handleChange to manage 'seller' as well
-  const handleChange = ({ target: { name, value } }) =>
+  // Validate numeric fields and update state for any field
+  const handleChange = ({ target: { name, value } }) => {
+    // Validate count: it must be a number greater than 0
+    if (name === 'count') {
+      const numericValue = parseInt(value, 10)
+      if (isNaN(numericValue) || numericValue <= 0) {
+        setCountError('Count must be greater than 0')
+      } else {
+        setCountError('')
+      }
+    }
+    // Validate price: it must be a number and non-negative
+    if (name === 'price') {
+      const numericValue = parseFloat(value)
+      if (isNaN(numericValue) || numericValue < 0) {
+        setPriceError('Price cannot be negative')
+      } else {
+        setPriceError('')
+      }
+    }
     setFields(prevFields => ({
       ...prevFields,
       [name]: value,
     }))
+  }
 
   const handleChooseCategory = useCallback(index => {
     setChooseCategory(index)
   }, [])
 
-  // 3) Add 'seller' to the check in previewForm if you want it required
+  // Check if all required fields are filled to show the preview
   const previewForm = useCallback(() => {
     if (title && count && price && seller && uploadMedia) {
-      fillFiledMessage && setFillFiledMessage(false)
+      if (fillFiledMessage) setFillFiledMessage(false)
       setVisiblePreview(true)
     } else {
       setFillFiledMessage(true)
     }
   }, [title, count, price, seller, uploadMedia, fillFiledMessage])
 
-  // 4) Include 'seller' in the submitForm body
   const submitForm = useCallback(
     async e => {
       e.preventDefault()
-      !cosmicUser.hasOwnProperty('id') && handleOAuth()
+
+      // Validate that count is a number greater than 0
+      const numericCount = parseInt(count, 10)
+      if (isNaN(numericCount) || numericCount <= 0) {
+        toast.error('Count should be greater than 0')
+        return
+      }
+      // Validate price is non-negative
+      const numericPrice = parseFloat(price)
+      if (isNaN(numericPrice) || numericPrice < 0) {
+        toast.error('Price cannot be negative')
+        return
+      }
+
+      // Check for user authentication before handling upload
+      if (!cosmicUser.hasOwnProperty('id')) {
+        handleOAuth()
+      }
 
       if (
         cosmicUser &&
@@ -124,7 +162,7 @@ const Upload = ({ navigationItems, categoriesType }) => {
         seller &&
         uploadMedia
       ) {
-        fillFiledMessage && setFillFiledMessage(false)
+        if (fillFiledMessage) setFillFiledMessage(false)
 
         const response = await fetch('/api/create', {
           method: 'POST',
@@ -141,7 +179,7 @@ const Upload = ({ navigationItems, categoriesType }) => {
             categories: [chooseCategory],
             image: uploadMedia['name'],
             auction: false,
-            seller, // new field sent to the backend
+            seller,
           }),
         })
 
@@ -189,7 +227,7 @@ const Upload = ({ navigationItems, categoriesType }) => {
             <div className={styles.head}>
               <div className={cn('h2', styles.title)}>Create an item</div>
             </div>
-            <form className={styles.form} action="" onSubmit={submitForm}>
+            <form className={styles.form} onSubmit={submitForm}>
               <div className={styles.list}>
                 <div className={styles.item}>
                   <div className={styles.category}>Upload file</div>
@@ -216,7 +254,7 @@ const Upload = ({ navigationItems, categoriesType }) => {
                       label="Item title"
                       name="title"
                       type="text"
-                      placeholder="e. g. Readable Title"
+                      placeholder="e.g. Readable Title"
                       onChange={handleChange}
                       value={title}
                       required
@@ -226,13 +264,13 @@ const Upload = ({ navigationItems, categoriesType }) => {
                       label="Description"
                       name="description"
                       type="text"
-                      placeholder="e. g. Description"
+                      placeholder="e.g. Description"
                       onChange={handleChange}
                       value={description}
                       required
                     />
 
-                    {/* 5) New Seller (Roll Number) Field */}
+                    {/* Seller (Roll Number) Field */}
                     <TextInput
                       className={styles.field}
                       label="Seller Roll Number"
@@ -261,24 +299,42 @@ const Upload = ({ navigationItems, categoriesType }) => {
                           className={styles.field}
                           label="Price"
                           name="price"
-                          type="text"
-                          placeholder="e. g. Price"
+                          type="number"
+                          placeholder="e.g. Price"
                           onChange={handleChange}
                           value={price}
                           required
+                          min={0}
                         />
+                        {priceError && (
+                          <div style={{ color: 'red', fontSize: '0.9rem' }}>
+                            {priceError}
+                          </div>
+                        )}
                       </div>
                       <div className={styles.col}>
                         <TextInput
                           className={styles.field}
                           label="Count"
                           name="count"
-                          type="text"
-                          placeholder="e. g. Count"
+                          type="number"
+                          placeholder="e.g. Count"
                           onChange={handleChange}
                           value={count}
                           required
+                          min={1}
                         />
+                        {countError && (
+                          <div
+                            style={{
+                              color: 'red',
+                              fontSize: '0.9rem',
+                              marginTop: '0.5rem',
+                            }}
+                          >
+                            {countError}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -302,11 +358,7 @@ const Upload = ({ navigationItems, categoriesType }) => {
                 >
                   Preview
                 </button>
-                <button
-                  className={cn('button', styles.button)}
-                  onClick={submitForm}
-                  type="submit"
-                >
+                <button className={cn('button', styles.button)} type="submit">
                   <span>Create item</span>
                   <Icon name="arrow-next" size="10" />
                 </button>
