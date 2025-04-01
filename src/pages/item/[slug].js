@@ -66,11 +66,14 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
   const [visibleAuthModal, setVisibleAuthModal] = useState(false)
   const [price, setPrice] = useState(0)
   const [showReportModal, setShowReportModal] = useState(false)
-  const counts = itemInfo?.[0]?.metadata?.count
-    ? Array(itemInfo[0]?.metadata?.count)
-        .fill(1)
-        .map((_, index) => index + 1)
-    : ['Not Available']
+
+  // Convert metadata.count to an integer and only create an array if it's > 0.
+  const countValue = parseInt(itemInfo?.[0]?.metadata?.count, 10)
+  const counts =
+    countValue > 0
+      ? Array.from({ length: countValue }, (_, index) => index + 1)
+      : ['Not Available']
+
   const [option, setOption] = useState(counts[0])
 
   const chatWithBuyer = () => {
@@ -157,7 +160,6 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
                   {itemInfo[0]?.metadata?.color}
                 </div>
               </div>
-              {/* onClick now checks for image details */}
               <div
                 className={styles.image}
                 onClick={() => {
@@ -184,16 +186,10 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
               className={styles.nav}
               style={{ display: 'flex', justifyContent: 'space-evenly' }}
             >
-              <button
-                className={cn(styles.link)}
-                onClick={() => chatWithBuyer()}
-              >
+              <button className={cn(styles.link)} onClick={chatWithBuyer}>
                 Chat with Buyer
               </button>
-              <button
-                className={cn(styles.link)}
-                onClick={() => handleAddToCart()}
-              >
+              <button className={cn(styles.link)} onClick={handleAddToCart}>
                 View Discussion Forum
               </button>
             </div>
