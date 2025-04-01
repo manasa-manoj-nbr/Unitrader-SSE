@@ -3,7 +3,7 @@ import { StateContext } from '../utils/context/StateContext'
 import NextProgress from "next-progress"
 
 import '../styles/app.sass'
-
+import './profile.css'
 function MyApp({ Component, pageProps }) {
   return (
     <StateContext>
