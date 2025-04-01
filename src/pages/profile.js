@@ -20,7 +20,14 @@ const ProfilePage = ({ navigationItems }) => {
   const [profileData, setProfileData] = useState(null)
   const [activeTab, setActiveTab] = useState('purchases')
   const infoAbout = chooseBySlug(null, 'profile')
-
+    // Helper: Compute username from email if domain is "iiitkottayam.ac.in"
+    const computeUsername = email => {
+        if (!email?.endsWith('@iiitkottayam.ac.in')) return null
+        const localPart = email.split('@')[0] // e.g. "user23bcy41"
+        const username = localPart.replace(/\d.*$/, '') // Remove digits and everything after them
+        return username.toUpperCase() // Returns "user"
+    }
+  
   // Helper: Compute roll number from email if domain is "iiitkottayam.ac.in"
   const computeRollNumber = email => {
     if (!email?.endsWith('@iiitkottayam.ac.in')) return null
@@ -50,7 +57,7 @@ const ProfilePage = ({ navigationItems }) => {
             console.log('No user data found for UID:', cosmicUser.id)
           }
           // Compute roll number from email
-          const rollNumber = computeRollNumber(firestoreData.email)
+            const rollNumber = computeRollNumber(firestoreData.email)
           let soldItems = []
           if (rollNumber) {
             console.log('Fetching sold items for roll number:', rollNumber)
@@ -89,7 +96,8 @@ const ProfilePage = ({ navigationItems }) => {
     )
   }
 
-  const rollNumber = computeRollNumber(profileData.email)
+    const rollNumber = computeRollNumber(profileData.email)
+    const username = computeUsername(profileData.email)
 
   // When "sold" tab is clicked, re-fetch sold items and print them in the console.
   const handleSoldClick = async () => {
@@ -184,7 +192,7 @@ const ProfilePage = ({ navigationItems }) => {
                   />
                   <span className="statusDot"></span>
                 </div>
-                <h2>{profileData.name || 'User'}</h2>
+                <h2>{username}</h2>
                 <p className="title">{profileData.title || 'Student'}</p>
                 <p className="email">{profileData.email || 'No email provided'}</p>
                 {rollNumber && (
