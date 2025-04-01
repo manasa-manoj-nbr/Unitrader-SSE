@@ -49,7 +49,7 @@ const Headers = ({ navigation }) => {
       <header className={styles.header}>
         <div className={cn('container', styles.container)} aria-hidden="true">
           <AppLink className={styles.logo} href="/">
-            {/* <Image
+            {<Image
               width={256}
               height={120}
               objectFit='contain'
@@ -57,7 +57,7 @@ const Headers = ({ navigation }) => {
               src={navigation['logo']?.imgix_url}
               alt="Logo"
               priority
-            /> */}
+            /> }
           </AppLink>
           <div className={cn(styles.wrapper, { [styles.active]: visibleNav })}>
             <nav className={styles.nav}>
@@ -76,15 +76,6 @@ const Headers = ({ navigation }) => {
           <div className={styles.version}>
             <Theme className="theme-big" />
           </div>
-          {/* <AppLink
-            aria-label="search"
-            aria-hidden="true"
-            className={cn('button-small', styles.button)}
-            href={`/search`}
-          >
-            <Icon name="search" size="20" />
-            Search
-          </AppLink> */}
           {cosmicUser?.['id'] ? (
             <User className={styles.user} user={cosmicUser} />
           ) : (
