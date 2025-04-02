@@ -189,9 +189,9 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
               <button className={cn(styles.link)} onClick={chatWithBuyer}>
                 Chat with Buyer
               </button>
-              <button className={cn(styles.link)} onClick={handleAddToCart}>
+              {/* <button className={cn(styles.link)} onClick={handleAddToCart}>
                 View Discussion Forum
-              </button>
+              </button> */}
             </div>
             <h1 className={cn('h3', styles.title)}>{itemInfo[0]?.title}</h1>
             <div className={styles.cost}>
