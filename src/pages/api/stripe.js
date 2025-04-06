@@ -27,13 +27,13 @@ export default async function handler(req, res) {
               unit_amount: Math.max(item.metadata.price * 100, 45),
             },
             adjustable_quantity: {
-              enabled: true,
-              minimum: 1,
+              enabled: false,
+              // minimum: 1,
             },
-            quantity: 1,
+            quantity: item.metadata.count,
           }
         }),
-        success_url: `${req.headers.origin}/qr_code?item_slug=${req.body.map(item =>item.title)}&image=${req.body.map(item =>item.metadata.image.imgix_url)}`,
+        success_url: `${req.headers.origin}/qr_code?item_slug=${req.body.map(item =>item.title)}&image=${req.body.map(item =>item.metadata.image.imgix_url)}&slug=${req.body.map(item =>item.slug)}&quantity=${req.body.map(item =>item.metadata.count)}`,
         cancel_url: `${req.headers.origin}/`,
       }
       console.log('params', params) 

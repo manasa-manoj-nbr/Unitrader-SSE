@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import cn from 'classnames'
 import { useRouter } from 'next/router'
 import { useStateContext } from '../utils/context/StateContext'
@@ -18,7 +18,6 @@ import styles from '../styles/pages/Search.module.sass'
 import { PageMeta } from '../components/Meta'
 
 import Cookies from 'js-cookie'
-
 
 const Search = ({ categoriesGroup, navigationItems, categoryData }) => {
   const { query, push } = useRouter()
@@ -45,9 +44,14 @@ const Search = ({ categoriesGroup, navigationItems, categoryData }) => {
   const [option, setOption] = useState(query['color'] || OPTIONS[0])
 
   const handleChange = ({ target: { name, value } }) => {
+    const numericValue = Number(value)
+    if (isNaN(numericValue) || numericValue < 0) {
+      alert('Enter a positive integer')
+      return
+    }
     setRangeValues(prevFields => ({
       ...prevFields,
-      [name]: value,
+      [name]: numericValue,
     }))
   }
 
@@ -138,6 +142,16 @@ const Search = ({ categoriesGroup, navigationItems, categoryData }) => {
       isMount = false
     }
   }, [debouncedSearchTerm, debouncedMinTerm, debouncedMaxTerm])
+
+  // Filter out items with count 0 or less.
+  const availableProducts = searchResult?.filter(item => {
+    if (item.metadata) {
+      const count = Number(item.metadata.count)
+      
+      return !isNaN(count) && count > 0
+    }
+    return false
+  })
 
   return (
     <Layout navigationPaths={navigationItems[0]?.metadata}>
@@ -233,8 +247,8 @@ const Search = ({ categoriesGroup, navigationItems, categoryData }) => {
                   ))}
               </div>
               <div className={styles.list}>
-                {searchResult?.length ? (
-                  searchResult?.map((x, index) => {
+                {availableProducts?.length ? (
+                  availableProducts.map((x, index) => {
                     // Check if the current item is already in the user's purchase history (stored in a cookie)
                     const purchasedItems = Cookies.get('purchasedItems')
                       ? JSON.parse(Cookies.get('purchasedItems'))

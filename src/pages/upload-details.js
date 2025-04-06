@@ -29,17 +29,19 @@ const Upload = ({ navigationItems, categoriesType }) => {
   const [chooseCategory, setChooseCategory] = useState('')
   const [fillFiledMessage, setFillFiledMessage] = useState(false)
 
-  // We keep title and description as strings, but count and price will be numbers
-  const [{ title, count, description, price, seller }, setFields] = useState(
+  // Add 'phone_number' field to the state along with the others.
+  const [{ title, count, description, price, seller, phone_number }, setFields] = useState(
     () => ({
       ...createFields,
       seller: '',
+      phone_number: '',
     })
   )
 
-  // New state to track count and price validation errors
+  // State for validation errors
   const [countError, setCountError] = useState('')
   const [priceError, setPriceError] = useState('')
+  const [phoneNumberError, setPhoneNumberError] = useState('')
 
   const [visibleAuthModal, setVisibleAuthModal] = useState(false)
   const [visiblePreview, setVisiblePreview] = useState(false)
@@ -91,9 +93,8 @@ const Upload = ({ navigationItems, categoriesType }) => {
     cosmicUser?.hasOwnProperty('id') ? handleUploadFile(file) : handleOAuth()
   }
 
-  // Validate numeric fields and update state for any field
+  // Validate fields and update state. Includes validation for the phone_number.
   const handleChange = ({ target: { name, value } }) => {
-    // Validate count: it must be a number greater than 0
     if (name === 'count') {
       const numericValue = parseInt(value, 10)
       if (isNaN(numericValue) || numericValue <= 0) {
@@ -102,13 +103,21 @@ const Upload = ({ navigationItems, categoriesType }) => {
         setCountError('')
       }
     }
-    // Validate price: it must be a number and non-negative
     if (name === 'price') {
       const numericValue = parseFloat(value)
       if (isNaN(numericValue) || numericValue < 0) {
         setPriceError('Price cannot be negative')
       } else {
         setPriceError('')
+      }
+    }
+    if (name === 'phone_number') {
+      // Regex: optional '+' followed by 10 to 15 digits.
+      const pattern = /^\+?\d{10,15}$/
+      if (!pattern.test(value)) {
+        setPhoneNumberError('Please enter a valid phone number')
+      } else {
+        setPhoneNumberError('')
       }
     }
     setFields(prevFields => ({
@@ -121,28 +130,26 @@ const Upload = ({ navigationItems, categoriesType }) => {
     setChooseCategory(index)
   }, [])
 
-  // Check if all required fields are filled to show the preview
+  // Check if all required fields are filled to show the preview.
   const previewForm = useCallback(() => {
-    
-    if (title && count && price && seller && uploadMedia) {
+    if (title && count && price && seller && uploadMedia && phone_number && !phoneNumberError) {
       if (fillFiledMessage) setFillFiledMessage(false)
       setVisiblePreview(true)
     } else {
       setFillFiledMessage(true)
     }
-  }, [title, count, price, seller, uploadMedia, fillFiledMessage])
+  }, [title, count, price, seller, uploadMedia, phone_number, phoneNumberError, fillFiledMessage])
 
   const submitForm = useCallback(
     async e => {
       e.preventDefault()
 
-      // Validate that count is a number greater than 0
+      // Validate count and price
       const numericCount = parseInt(count, 10)
       if (isNaN(numericCount) || numericCount <= 0) {
         toast.error('Count should be greater than 0')
         return
       }
-      // Validate price is non-negative
       const numericPrice = parseFloat(price)
       if (isNaN(numericPrice) || numericPrice < 0) {
         toast.error('Price cannot be negative')
@@ -154,13 +161,13 @@ const Upload = ({ navigationItems, categoriesType }) => {
         handleOAuth()
       }
       const user = localStorage.getItem('uNFT-user')
-        if (user) {
-          const cosmicUser = JSON.parse(user)
-          if (cosmicUser?.hasOwnProperty('roll_number')) {
-            seller = cosmicUser?.roll_number
-            console.log('Seller Roll Number:', seller)
-          }
+      if (user) {
+        const cosmicUserLocal = JSON.parse(user)
+        if (cosmicUserLocal?.hasOwnProperty('roll_number')) {
+          seller = cosmicUserLocal?.roll_number
+          console.log('Seller Roll Number:', seller)
         }
+      }
 
       if (
         cosmicUser &&
@@ -169,7 +176,9 @@ const Upload = ({ navigationItems, categoriesType }) => {
         count &&
         price &&
         seller &&
-        uploadMedia
+        uploadMedia &&
+        phone_number &&
+        !phoneNumberError
       ) {
         if (fillFiledMessage) setFillFiledMessage(false)
 
@@ -189,6 +198,7 @@ const Upload = ({ navigationItems, categoriesType }) => {
             image: uploadMedia['name'],
             auction: false,
             seller,
+            phone_number: parseInt(phone_number, 10),
           }),
         })
 
@@ -221,6 +231,8 @@ const Upload = ({ navigationItems, categoriesType }) => {
       seller,
       title,
       uploadMedia,
+      phone_number,
+      phoneNumberError,
     ]
   )
 
@@ -278,9 +290,9 @@ const Upload = ({ navigationItems, categoriesType }) => {
                       value={description}
                       required
                     />
-
-                    {/* Seller (Roll Number) Field */}
-                    {/* <TextInput
+                    {/*
+                    // Seller (Roll Number) Field can be read-only if needed.
+                    <TextInput
                       className={styles.field}
                       label="Seller Roll Number"
                       name="seller"
@@ -290,8 +302,23 @@ const Upload = ({ navigationItems, categoriesType }) => {
                       value={localStorage.getItem('uNFT-user')?.roll_number || ''}
                       readOnly 
                       required
-                    /> */}
-
+                    />
+                    */}
+                    <TextInput
+                      className={styles.field}
+                      label="WhatsApp Number"
+                      name="phone_number"
+                      type="text"
+                      placeholder="e.g. +919876543210"
+                      onChange={handleChange}
+                      value={phone_number}
+                      required
+                    />
+                    {phoneNumberError && (
+                      <div style={{ color: 'red', fontSize: '0.9rem' }}>
+                        {phoneNumberError}
+                      </div>
+                    )}
                     <div className={styles.row}>
                       <div className={styles.col}>
                         <div className={styles.field}>
@@ -383,7 +410,7 @@ const Upload = ({ navigationItems, categoriesType }) => {
           </div>
           <Preview
             className={cn(styles.preview, { [styles.active]: visiblePreview })}
-            info={{ title, color, count, description, price, seller }}
+            info={{ title, color, count, description, price, seller, phone_number }}
             image={uploadMedia?.['imgix_url']}
             onClose={() => setVisiblePreview(false)}
           />

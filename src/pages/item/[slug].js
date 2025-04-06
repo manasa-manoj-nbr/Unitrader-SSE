@@ -19,6 +19,7 @@ import {
 import getStripe from '../../lib/getStripe'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
+import { FaWhatsapp } from 'react-icons/fa'
 
 import styles from '../../styles/pages/Item.module.sass'
 
@@ -184,15 +185,35 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
           <div className={styles.details}>
             <div
               className={styles.nav}
-              style={{ display: 'flex', justifyContent: 'space-evenly' }}
+              style={{ display: 'flex', justifyContent: 'center' }}
             >
-              <button className={cn(styles.link)} onClick={chatWithBuyer}>
-                Chat with Buyer
-              </button>
-              {/* <button className={cn(styles.link)} onClick={handleAddToCart}>
-                View Discussion Forum
-              </button> */}
+              {itemInfo[0]?.metadata?.phone_number && (
+                <a
+                  href={`https://wa.me/+91${itemInfo[0].metadata.phone_number}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn(styles.link)}
+                  style={{
+                    color: '#25D366',
+                    fontWeight: 'bold',
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <img
+                    src="/images/content/whatsapp.png"
+                    alt="WhatsApp"
+                    width={28}
+                    height={20}
+                  />
+
+                  <span>Contact via WhatsApp</span>
+                </a>
+              )}
             </div>
+
             <h1 className={cn('h3', styles.title)}>{itemInfo[0]?.title}</h1>
             <div className={styles.cost}>
               <PriceDisplay />
@@ -205,6 +226,7 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
             <div className={styles.info}>
               {itemInfo[0]?.metadata?.description}
             </div>
+
             <div className={styles.actions}>
               <div className={styles.dropdown}>
                 <Dropdown
@@ -253,9 +275,7 @@ const Item = ({ itemInfo, categoriesGroup, navigationItems }) => {
             <span
               style={{ color: 'red', cursor: 'pointer', textAlign: 'right' }}
               onClick={() => setShowReportModal(true)}
-            >
-              Report Item
-            </span>
+            ></span>
           </div>
         </div>
       </div>
