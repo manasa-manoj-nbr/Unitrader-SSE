@@ -41,6 +41,8 @@ Git (for cloning the repo)
 
 Basic familiarity with React and Next.js
 
+Install vscode extension called as **<u>vscode-pdf</u>** to open the pdf for the api keys.
+
 **4. Installation & Setup**
 
 Clone the repository
@@ -62,7 +64,7 @@ When prompted, enter the password provided by the Course Representative (CR) to 
 
 Create a new file in the project root named .env.local (or simply .env if you prefer).
 
-Inside .env.local, copy each key from the PDF, preserving the exact variable names. ****For example:
+Inside .env.local, copy each key from the PDF, preserving the exact variable names. **For example**:
 
  #Stripe
 STRIPE_SECRET_KEY=sk_test_XXXXXXXXXXXXXXXXXXXX
