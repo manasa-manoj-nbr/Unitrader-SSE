@@ -19,8 +19,8 @@ Responsive UI built with Tailwind CSS
 
 This repository contains both the frontend (under src/) and API routes (under src/pages/api/).
 
-**2. Key Technologies
-**
+**2. Key Technologies**
+
 2.1 Next.js
 
 Next.js is a React framework for building full‑stack web apps with server-side rendering, API routes, and automatic bundling.
