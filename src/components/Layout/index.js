@@ -33,7 +33,7 @@ const Layout = ({ children, title, navigationPaths }) => {
       <PageMeta
         title={'UniTrader'}
         description={
-          'UniTrader is your friendly college-hood marketplace.'
+          'UniTrader is your friendly marketplace.'
         }
       />
       {/* TODO: REMOVE*/}

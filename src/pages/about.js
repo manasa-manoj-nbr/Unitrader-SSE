@@ -24,7 +24,7 @@ const AboutUs = ({ navigationItems, landing }) => {
       <PageMeta
         title={'About | UniTrader'}
         description={
-          'UniTrader is your friendly college-hood marketplace.'
+          'UniTrader is your friendly marketplace.'
         }
       />
       <div className={cn('section', styles.section)}>

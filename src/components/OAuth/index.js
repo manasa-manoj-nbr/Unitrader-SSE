@@ -41,14 +41,12 @@ const OAuth = ({ className, handleClose, handleOAuth, disable }) => {
       console.log('User first name:', firstName)
 
       // Verify email domain
-      if (
-        !user.email.endsWith('@iiitkottayam.ac.in') &&
-        user.email !== 'pavan082005@gmail.com'
-      ) {
+      if (!user.email.endsWith('@gmail.com')) {
         console.log('Domain check failed for:', user.email)
-        setErrorMessage('Please use your college email address')
+        setErrorMessage('Only Gmail addresses are allowed')
         return
       }
+      
 
       // Store user details in Firestore under the "users" collection
       await setDoc(

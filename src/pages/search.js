@@ -157,7 +157,7 @@ const Search = ({ categoriesGroup, navigationItems, categoryData }) => {
     <Layout navigationPaths={navigationItems[0]?.metadata}>
       <PageMeta
         title={'Discover | UniTrader'}
-        description={'UniTrader is your friendly college-hood marketplace.'}
+        description={'UniTrader is your friendly marketplace.'}
       />
       <div className={cn('section-pt80', styles.section)}>
         <div className={cn('container', styles.container)}>
